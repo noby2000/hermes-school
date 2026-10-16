@@ -30,13 +30,69 @@ git config --global user.email "почта@example.com"</pre></div></label>
 uv --version
 uv python install</pre></div></label>
 <label class="task"><input type="checkbox" data-id="s1-ed"><div><b>Редактор кода.</b> Установи <a href="https://code.visualstudio.com">VS Code</a> (или Cursor). В Windows поставь расширение «WSL» и открывай папки командой <code>code .</code> из терминала Ubuntu.</div></label>
-<label class="task"><input type="checkbox" data-id="s1-key"><div><b>Ключ к модели (LLM).</b> Hermes нужен «мозг». Варианты: <a href="https://portal.nousresearch.com">Nous Portal</a> (одна подписка: модели + веб-поиск, картинки, голос) или <a href="https://openrouter.ai/keys">OpenRouter</a> (создай API-ключ, пополни баланс на пару долларов). <b>Ключ — как пароль: никому не показывай и не клади в GitHub.</b></div></label>
+<label class="task"><input type="checkbox" data-id="s1-key"><div><b>Ключ к модели (LLM) — начинаем бесплатно.</b> Hermes нужен «мозг»: языковая модель. Платить сразу не обязательно. Варианты ниже; подключение делается после установки Hermes (следующие пункты). Ключи хранятся в <code>~/.hermes/.env</code>. <b>Ключ — как пароль: никому не показывай и не клади в GitHub.</b>
+<p class="warn">⚠️ Из России: Gemini API / Google AI Studio официально <b>недоступны</b> (Россия не в списке регионов Google). OpenRouter с лета 2026 ограничивает российские аккаунты и IP. Условия OpenRouter и Google <b>запрещают</b> обходить региональные ограничения через VPN/прокси — за это блокируют аккаунт. Самый надёжный бесплатный путь из РФ — <b>локальная модель через Ollama</b>.</p>
+<details open><summary><b>A. Ollama — локально, бесплатно, без интернета и VPN</b></summary>
+Нужен мощный компьютер: Hermes требует <b>контекст не меньше 64 000 токенов</b>, а это много памяти (видеокарта / Mac с 16–32+ ГБ). Установка: <a href="https://ollama.com/download">ollama.com/download</a>, затем:
+<pre>ollama pull qwen2.5-coder:32b      # или модель поменьше, если не тянет
+OLLAMA_CONTEXT_LENGTH=64000 ollama serve
+ollama ps                          # колонка CONTEXT должна быть 64000</pre>
+В Hermes: <code>hermes model</code> → «Custom endpoint» → URL <code>http://localhost:11434/v1</code>, ключ пустой, имя модели. Или вручную в <code>~/.hermes/config.yaml</code>:
+<pre>model:
+  default: qwen2.5-coder:32b
+  provider: custom
+  base_url: http://localhost:11434/v1
+  context_length: 64000</pre>
+Важно: по умолчанию Ollama даёт всего 4096 токенов контекста — без настройки выше Hermes не запустится.</details>
+<details><summary><b>B. OpenRouter — бесплатные модели с суффиксом <code>:free</code></b></summary>
+Ключ: <a href="https://openrouter.ai/keys">openrouter.ai/keys</a>. Лимиты бесплатных моделей: 20 запросов/мин и <b>50 запросов в день</b> (1000/день, если когда-либо купить ≥10 кредитов). Hermes делает несколько запросов на один твой вопрос, так что 50 хватит ненадолго. Список: <a href="https://openrouter.ai/models?q=free">openrouter.ai/models?q=free</a> — выбирай модели с поддержкой tools.
+<pre>echo 'OPENROUTER_API_KEY=sk-or-...' >> ~/.hermes/.env
+hermes model     # OpenRouter → модель с :free
+# или войти через браузер:
+hermes auth add openrouter --type oauth</pre>
+Из РФ: часть моделей/аккаунтов заблокирована (см. предупреждение).</details>
+<details><summary><b>C. Google AI Studio (Gemini) — бесплатный уровень</b></summary>
+Ключ: <a href="https://aistudio.google.com/apikey">aistudio.google.com/apikey</a>.
+<pre>echo 'GEMINI_API_KEY=...' >> ~/.hermes/.env
+hermes chat --provider gemini --model gemini-2.5-flash   # имя модели — уточни в hermes model</pre>
+Документация Hermes предупреждает: бесплатной квоты может хватить лишь на несколько ходов агента. <b>Из РФ недоступно.</b></details>
+<details><summary><b>D. Groq — быстрый, есть бесплатный уровень</b></summary>
+Ключ: <a href="https://console.groq.com/keys">console.groq.com/keys</a>. Подключается как Custom endpoint: <code>hermes model</code> → «Custom endpoint» → URL <code>https://api.groq.com/openai/v1</code>, ключ, модель (например из списка на console.groq.com). <i>Не проверено: точные бесплатные лимиты и доступность из РФ — смотри на сайте Groq.</i></details>
+<details><summary><b>E. NVIDIA Build — бесплатный API-ключ</b></summary>
+Документация Hermes: бесплатный ключ на <a href="https://build.nvidia.com/settings/api-keys">build.nvidia.com</a>.
+<pre>echo 'NVIDIA_API_KEY=nvapi-...' >> ~/.hermes/.env
+hermes chat --provider nvidia --model nvidia/nemotron-3.5-super-vl-120b-a12b</pre>
+Модель в примере поддерживает tool calls. <i>Не проверено: лимиты и доступность из РФ.</i></details>
+<details><summary><b>F. Nous Portal</b></summary>Подписка (300+ моделей + инструменты): <code>hermes setup --portal</code>. <i>Не проверено: есть ли сейчас бесплатный уровень.</i></details>
+<p><b>Какие модели подходят:</b> Hermes — агент: модель должна уметь <b>вызывать инструменты (tool calling)</b> и держать контекст ≥64K. Маленькие локальные модели часто путаются в инструментах — бери самую крупную, что тянет компьютер (в документации пример: <code>qwen2.5-coder</code>). <i>Конкретный рейтинг «бесплатных моделей для Hermes» в документации не дан — проверяй на практике.</i></p>
+</div></label>
 <label class="task"><input type="checkbox" data-id="s1-inst"><div><b>Установка Hermes.</b> Linux / macOS / WSL2: <pre>curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
 source ~/.bashrc   # или: source ~/.zshrc</pre> Windows (PowerShell, без WSL): <pre>iex (irm https://hermes-agent.nousresearch.com/install.ps1)</pre></div></label>
 <label class="task"><input type="checkbox" data-id="s1-setup"><div><b>Подключи модель.</b> С Nous Portal: <pre>hermes setup --portal</pre> С OpenRouter или другим провайдером: <pre>hermes setup     # мастер настройки
 hermes model     # выбрать провайдера и модель</pre></div></label>
 <label class="task"><input type="checkbox" data-id="s1-run"><div><b>Проверь, что всё работает.</b> <pre>hermes doctor
 hermes</pre> Напиши агенту: «Привет! Какая у тебя модель и какие инструменты?». Выход — Ctrl+C. Обновление в будущем: <code>hermes update</code>.</div></label>
+<label class="task"><input type="checkbox" data-id="s1-orch"><div><b>Агенты и оркестратор (знакомство).</b> В Hermes есть инструмент <code>delegate_task</code>: главный агент (оркестратор) раздаёт задачи <b>субагентам</b>. У каждого — свой чистый контекст и свой терминал; в главный разговор возвращается только итог. Параллельно — до 10 субагентов по умолчанию. Субагенты не могут писать в общую память, задавать тебе вопросы и отправлять сообщения.
+<p>Для eatandfit просто попроси главного агента, например:</p>
+<pre>Ты оркестратор проекта eatandfit (сервис для нутрициологов и тренеров).
+Раздай задачи субагентам параллельно:
+1) исследователь — какие функции нужны нутрициологу и тренеру, аналоги в РФ;
+2) кодер — заготовка проекта в ~/eatandfit;
+3) тестировщик — проверить, что заготовка запускается.
+Собери итог и предложи план MVP.</pre>
+<p>Настройка в <code>~/.hermes/config.yaml</code> (главный агент — модель посильнее, субагенты — дешёвая/бесплатная):</p>
+<pre>delegation:
+  max_iterations: 60          # лимит шагов каждого субагента (по умолчанию 250)
+  max_concurrent_children: 3  # сколько параллельно (по умолчанию 10)
+  # max_spawn_depth: 2        # чтобы субагент-оркестратор мог сам нанимать субагентов
+  # бесплатно через локальный Ollama:
+  model: "qwen2.5-coder:32b"
+  base_url: "http://localhost:11434/v1"
+  api_key: "local-key"
+  # или через OpenRouter:
+  # model: "модель:free"
+  # provider: "openrouter"</pre>
+<p>Субагенты получают те же инструменты, что включены у главного агента (<code>hermes tools</code>). Осторожно: каждый субагент тратит запросы — на бесплатных лимитах (50/день у OpenRouter) начинай с 2–3 субагентов. <i>Отдельные «именные роли» (researcher/coder/tester) в документации не описаны — роли задаются текстом задачи.</i> Подробнее: <a href="https://hermes-agent.nousresearch.com/docs/user-guide/features/delegation">Subagent Delegation</a>.</p></div></label>
 <p class="muted">Документация: <a href="https://hermes-agent.nousresearch.com/docs/">hermes-agent.nousresearch.com/docs</a> · <a href="https://hermes-agent.nousresearch.com/docs/getting-started/quickstart">Quickstart</a></p>
 <button id="reset">Сбросить галочки</button>
 </section></main>

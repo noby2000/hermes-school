@@ -9,3 +9,5 @@ section{background:#fff;border-radius:14px;padding:16px 20px;margin:18px 0;box-s
 pre{background:#111827;color:#e5e7eb;padding:10px 12px;border-radius:8px;overflow-x:auto;font-size:.88em;white-space:pre}
 code{background:#eef;padding:1px 5px;border-radius:4px;font-size:.9em}pre code{background:none}
 button{margin-top:14px;padding:8px 14px;border:1px solid #ccc;border-radius:8px;background:#fff;cursor:pointer}
+details{margin:8px 0;padding:8px 10px;border:1px solid #e5e7eb;border-radius:8px}summary{cursor:pointer}
+.warn{background:#fff7e6;border-left:4px solid #f59e0b;padding:8px 10px;border-radius:6px}
