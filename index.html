@@ -30,41 +30,57 @@ git config --global user.email "почта@example.com"</pre></div></label>
 uv --version
 uv python install</pre></div></label>
 <label class="task"><input type="checkbox" data-id="s1-ed"><div><b>Редактор кода.</b> Установи <a href="https://code.visualstudio.com">VS Code</a> (или Cursor). В Windows поставь расширение «WSL» и открывай папки командой <code>code .</code> из терминала Ubuntu.</div></label>
-<label class="task"><input type="checkbox" data-id="s1-key"><div><b>Ключ к модели (LLM) — начинаем бесплатно.</b> Hermes нужен «мозг»: языковая модель. Платить сразу не обязательно. Варианты ниже; подключение делается после установки Hermes (следующие пункты). Ключи хранятся в <code>~/.hermes/.env</code>. <b>Ключ — как пароль: никому не показывай и не клади в GitHub.</b>
-<p class="warn">⚠️ Из России: Gemini API / Google AI Studio официально <b>недоступны</b> (Россия не в списке регионов Google). OpenRouter с лета 2026 ограничивает российские аккаунты и IP. Условия OpenRouter и Google <b>запрещают</b> обходить региональные ограничения через VPN/прокси — за это блокируют аккаунт. Самый надёжный бесплатный путь из РФ — <b>локальная модель через Ollama</b>.</p>
-<details open><summary><b>A. Ollama — локально, бесплатно, без интернета и VPN</b></summary>
-Нужен мощный компьютер: Hermes требует <b>контекст не меньше 64 000 токенов</b>, а это много памяти (видеокарта / Mac с 16–32+ ГБ). Установка: <a href="https://ollama.com/download">ollama.com/download</a>, затем:
-<pre>ollama pull qwen2.5-coder:32b      # или модель поменьше, если не тянет
+<label class="task"><input type="checkbox" data-id="s1-key"><div><b>Ключ к модели (LLM) — начинаем бесплатно.</b> Hermes нужна языковая модель. Подключение — после установки Hermes (следующие пункты); ключи хранятся в <code>~/.hermes/.env</code>. <b>Ключ — как пароль: никому не показывай и не клади в GitHub.</b> Модель должна уметь <b>вызывать инструменты (tool calling)</b> и держать контекст <b>≥ 64 000 токенов</b> — иначе Hermes не запустится. Полный официальный список провайдеров: <a href="https://hermes-agent.nousresearch.com/docs/integrations/providers">docs → AI Providers</a>. Звёздочка <b>*</b> — есть ограничения для России (см. сноску внизу).
+<h4>Зарубежные облачные</h4>
+<details open><summary><b>OpenRouter* — сотни моделей, бесплатные с суффиксом <code>:free</code></b></summary>Ключ: <a href="https://openrouter.ai/keys">openrouter.ai/keys</a>. Бесплатно: 20 запросов/мин, <b>50/день</b> (1000/день, если когда-либо купить ≥10 кредитов) — <a href="https://openrouter.ai/docs/api-reference/limits">источник</a>. Hermes делает несколько запросов на один вопрос. Выбирай <code>:free</code>-модели с пометкой tools.<pre>echo 'OPENROUTER_API_KEY=sk-or-...' >> ~/.hermes/.env
+hermes model          # OpenRouter → модель с :free
+# или вход через браузер:
+hermes auth add openrouter --type oauth</pre></details>
+<details><summary><b>Google AI Studio (Gemini)* — бесплатный уровень</b></summary>Ключ: <a href="https://aistudio.google.com/apikey">aistudio.google.com/apikey</a>. Документация Hermes: бесплатной квоты может хватить лишь на несколько ходов агента; на бесплатном уровне Google может использовать данные для улучшения продуктов.<pre>echo 'GEMINI_API_KEY=...' >> ~/.hermes/.env
+hermes model          # → Google / Gemini (provider: gemini)</pre></details>
+<details><summary><b>Groq* — очень быстрый, постоянный бесплатный уровень</b></summary>Ключ: <a href="https://console.groq.com/keys">console.groq.com/keys</a>, без карты. Лимиты зависят от модели (порядка 1000 запросов/день, но всего ~6–30K токенов/мин — для агента с длинным контекстом может быть тесно). <i>Лимиты — по сторонним обзорам, точные цифры на console.groq.com/settings/limits.</i><pre>hermes model   # → «Custom endpoint»
+# URL: https://api.groq.com/openai/v1
+# ключ: твой API-ключ, модель: напр. moonshotai/kimi-k2-instruct или openai/gpt-oss-120b</pre></details>
+<details><summary><b>Mistral (La Plateforme)* — бесплатный план «Experiment»</b></summary>Ключ: <a href="https://console.mistral.ai/">console.mistral.ai</a>, без карты, нужна проверка телефона. Лимиты: ~1 запрос/сек, ~1 млрд токенов/мес; только для экспериментов, данные могут идти на обучение. Модели Mistral поддерживают tool calling. <i>Лимиты — по сторонним обзорам.</i><pre>hermes model   # → «Custom endpoint»
+# URL: https://api.mistral.ai/v1
+# ключ: твой API-ключ, модель: напр. mistral-small-latest или devstral</pre></details>
+<details><summary><b>NVIDIA Build* — бесплатный API-ключ</b></summary>Документация Hermes: бесплатный ключ на <a href="https://build.nvidia.com/settings/api-keys">build.nvidia.com</a>; пример — Nemotron с поддержкой tool calls. <i>Не проверено: срок/объём бесплатных кредитов.</i><pre>echo 'NVIDIA_API_KEY=nvapi-...' >> ~/.hermes/.env
+hermes chat --provider nvidia --model nvidia/nemotron-3.5-super-vl-120b-a12b</pre></details>
+<details><summary><b>Cerebras* — пробный кредит</b></summary>Не постоянный бесплатный уровень: разовый кредит $5 на 30 дней, нужна карта (<a href="https://www.cerebras.ai/pricing">источник</a>). <i>По сторонним данным, на бесплатном уровне контекст урезан до 8K — для Hermes (нужно 64K) может не подойти.</i><pre>hermes model   # → «Custom endpoint»
+# URL: https://api.cerebras.ai/v1
+# ключ: твой API-ключ, модель: напр. gpt-oss-120b</pre></details>
+<details><summary><b>Hugging Face Inference* — маленький бесплатный кредит</b></summary>Встроенный провайдер Hermes (<code>huggingface</code>), маршрутизирует на Groq/Together/SambaNova и др. <i>Не проверено: размер бесплатного кредита (по обзорам — небольшой).</i><pre>echo 'HF_TOKEN=hf_...' >> ~/.hermes/.env
+hermes chat --provider huggingface --model Qwen/Qwen3.5-397B-A17B</pre></details>
+<details><summary><b>DeepSeek — платный, но очень дешёвый</b></summary>Встроенный провайдер Hermes (<code>deepseek</code>). Бесплатного уровня нет (<i>не проверено: бонус при регистрации</i>). Работает из РФ, но оплата — зарубежная карта/PayPal/Alipay.<pre>echo 'DEEPSEEK_API_KEY=sk-...' >> ~/.hermes/.env
+hermes model          # → DeepSeek</pre></details>
+<details><summary><b>Nous Portal — подписка от создателей Hermes</b></summary>300+ моделей + веб-поиск, картинки, голос в одной подписке: <code>hermes setup --portal</code>. <i>Не проверено: есть ли бесплатный уровень и доступ из РФ.</i></details>
+<details><summary><b>Платные без бесплатного уровня: OpenAI*, Anthropic*, xAI*, Together AI, Fireworks и др.</b></summary>Все есть в списке провайдеров Hermes (<code>hermes model</code>) или подключаются как Custom endpoint, например Together: <code>https://api.together.xyz/v1</code>, Fireworks: <code>https://api.fireworks.ai/inference/v1</code>. Для старта не нужны.</details>
+<h4>Российские</h4>
+<details><summary><b>GigaChat (Сбер) — бесплатно для физлиц</b></summary>Freemium для физлиц: <b>365 млн токенов на 12 месяцев</b> (250M Lite, 40M Pro, 25M Max, 50M Ultra), но <b>один поток</b> — субагенты будут идти по очереди (<a href="https://developers.sber.ru/docs/ru/gigachat/tariffs/individual-tariffs">тарифы</a>, <a href="https://developers.sber.ru/docs/ru/gigachat/limitations">лимиты</a>). API частично совместим с OpenAI (base <code>https://api.giga.chat/v1</code>, функции поддерживаются), но токен живёт всего 30 минут — поэтому удобнее официальный прокси <a href="https://github.com/ai-forever/gpt2giga">gpt2giga</a>, который сам обновляет токен и переводит tools. Ключ авторизации: <a href="https://developers.sber.ru/studio">developers.sber.ru/studio</a>.<pre># запусти gpt2giga по README (нужен ключ авторизации GigaChat),
+# затем в Hermes:
+hermes model   # → «Custom endpoint»
+# URL: http://localhost:&lt;порт gpt2giga&gt;/v1, модель: GigaChat-2-Max</pre><i>Не проверено: стабильная работа Hermes через gpt2giga (сам прокси пишет, что GigaChat — не полная замена OpenAI API).</i></details>
+<details><summary><b>YandexGPT / Yandex AI Studio — грант новым пользователям</b></summary>Грант <b>4000 ₽</b> новым пользователям (<a href="https://aistudio.yandex.ru/">aistudio.yandex.ru</a>). OpenAI-совместимый API с поддержкой tools; модель указывается как <code>gpt://&lt;ID_каталога&gt;/&lt;модель&gt;/latest</code> (<a href="https://yandex.cloud/ru/docs/tutorials/ml-ai/ai-model-ide-integration">инструкция</a>). Создай каталог и API-ключ сервисного аккаунта в Yandex Cloud.<pre>hermes model   # → «Custom endpoint»
+# URL: https://ai.api.cloud.yandex.net/v1
+# ключ: твой API-ключ, модель: gpt://ID_каталога/yandexgpt/latest</pre><i>Не проверено: срок действия гранта и работа именно с Hermes.</i></details>
+<details><summary><b>Российские агрегаторы (AITunnel, VseGPT, ProxyAPI, BotHub, Selectel и др.)</b></summary>OpenAI-совместимые шлюзы с оплатой в рублях, без бесплатного уровня (от ~500 ₽). Подключаются как Custom endpoint по их документации. Учти: перепродажа моделей OpenAI/Anthropic/Google в РФ нарушает условия этих компаний — доступ может пропасть в любой момент. <i>Не проверено: условия каждого сервиса.</i></details>
+<h4>Локально — в самом конце, если мощный компьютер</h4>
+<details><summary><b>Ollama — бесплатно, без интернета и без ограничений по странам</b></summary>Нужна видеокарта / Mac с 16–32+ ГБ памяти: Hermes требует контекст ≥64K, а Ollama по умолчанию даёт всего 4096. Установка: <a href="https://ollama.com/download">ollama.com/download</a>.<pre>ollama pull qwen2.5-coder:32b
 OLLAMA_CONTEXT_LENGTH=64000 ollama serve
-ollama ps                          # колонка CONTEXT должна быть 64000</pre>
-В Hermes: <code>hermes model</code> → «Custom endpoint» → URL <code>http://localhost:11434/v1</code>, ключ пустой, имя модели. Или вручную в <code>~/.hermes/config.yaml</code>:
-<pre>model:
+ollama ps        # колонка CONTEXT = 64000</pre>В Hermes: <code>hermes model</code> → «Custom endpoint» → <code>http://localhost:11434/v1</code>, ключ пустой. Или в <code>~/.hermes/config.yaml</code>:<pre>model:
   default: qwen2.5-coder:32b
   provider: custom
   base_url: http://localhost:11434/v1
-  context_length: 64000</pre>
-Важно: по умолчанию Ollama даёт всего 4096 токенов контекста — без настройки выше Hermes не запустится.</details>
-<details><summary><b>B. OpenRouter — бесплатные модели с суффиксом <code>:free</code></b></summary>
-Ключ: <a href="https://openrouter.ai/keys">openrouter.ai/keys</a>. Лимиты бесплатных моделей: 20 запросов/мин и <b>50 запросов в день</b> (1000/день, если когда-либо купить ≥10 кредитов). Hermes делает несколько запросов на один твой вопрос, так что 50 хватит ненадолго. Список: <a href="https://openrouter.ai/models?q=free">openrouter.ai/models?q=free</a> — выбирай модели с поддержкой tools.
-<pre>echo 'OPENROUTER_API_KEY=sk-or-...' >> ~/.hermes/.env
-hermes model     # OpenRouter → модель с :free
-# или войти через браузер:
-hermes auth add openrouter --type oauth</pre>
-Из РФ: часть моделей/аккаунтов заблокирована (см. предупреждение).</details>
-<details><summary><b>C. Google AI Studio (Gemini) — бесплатный уровень</b></summary>
-Ключ: <a href="https://aistudio.google.com/apikey">aistudio.google.com/apikey</a>.
-<pre>echo 'GEMINI_API_KEY=...' >> ~/.hermes/.env
-hermes chat --provider gemini --model gemini-2.5-flash   # имя модели — уточни в hermes model</pre>
-Документация Hermes предупреждает: бесплатной квоты может хватить лишь на несколько ходов агента. <b>Из РФ недоступно.</b></details>
-<details><summary><b>D. Groq — быстрый, есть бесплатный уровень</b></summary>
-Ключ: <a href="https://console.groq.com/keys">console.groq.com/keys</a>. Подключается как Custom endpoint: <code>hermes model</code> → «Custom endpoint» → URL <code>https://api.groq.com/openai/v1</code>, ключ, модель (например из списка на console.groq.com). <i>Не проверено: точные бесплатные лимиты и доступность из РФ — смотри на сайте Groq.</i></details>
-<details><summary><b>E. NVIDIA Build — бесплатный API-ключ</b></summary>
-Документация Hermes: бесплатный ключ на <a href="https://build.nvidia.com/settings/api-keys">build.nvidia.com</a>.
-<pre>echo 'NVIDIA_API_KEY=nvapi-...' >> ~/.hermes/.env
-hermes chat --provider nvidia --model nvidia/nemotron-3.5-super-vl-120b-a12b</pre>
-Модель в примере поддерживает tool calls. <i>Не проверено: лимиты и доступность из РФ.</i></details>
-<details><summary><b>F. Nous Portal</b></summary>Подписка (300+ моделей + инструменты): <code>hermes setup --portal</code>. <i>Не проверено: есть ли сейчас бесплатный уровень.</i></details>
-<p><b>Какие модели подходят:</b> Hermes — агент: модель должна уметь <b>вызывать инструменты (tool calling)</b> и держать контекст ≥64K. Маленькие локальные модели часто путаются в инструментах — бери самую крупную, что тянет компьютер (в документации пример: <code>qwen2.5-coder</code>). <i>Конкретный рейтинг «бесплатных моделей для Hermes» в документации не дан — проверяй на практике.</i></p>
+  context_length: 64000</pre>Также подходят LM Studio (встроенный провайдер <code>lmstudio</code>) и vLLM.</details>
+<div class="foot"><p><b>* Ограничения для России</b> (по состоянию на октябрь 2026):</p><ul>
+<li><b>OpenRouter</b> — ограничил сам сервис, официального заявления нет. По сторонним данным: с 12 мая 2026 не принимает платежи, связанные с РФ; с конца мая часть моделей отвечает ошибкой на российские IP; с 27 июня 2026 закрыт доступ для российских аккаунтов и адресов. Модели OpenAI/Anthropic/Google — «Restricted Models»: их провайдеры не разрешают доступ из РФ, а <a href="https://openrouter.ai/terms">условия OpenRouter</a> прямо запрещают обход через VPN/прокси. <i>Даты — <a href="https://ya.zerocoder.ru/openrouter-blokiruet/">ya.zerocoder.ru</a>, официально не подтверждены.</i></li>
+<li><b>Google Gemini / AI Studio</b> — ограничил Google: Россия никогда не входила в <a href="https://ai.google.dev/gemini-api/docs/available-regions">список доступных регионов</a>; <a href="https://ai.google.dev/gemini-api/terms">условия</a> требуют использовать сервис только из доступного региона. Публично причина не названа (<i>предположительно санкции и политика компании — не подтверждено</i>). Также нужно быть 18+.</li>
+<li><b>OpenAI</b> — ограничила сама компания: России нет в <a href="https://help.openai.com/en/articles/5347006-openai-api-supported-countries-and-territories">списке поддерживаемых стран</a>; с 9 июля 2024 блокирует API-трафик из неподдерживаемых стран (<a href="https://www.caixinglobal.com/2024-06-26/openai-enforces-harsher-api-restrictions-on-unsupported-countries-102209858.html">Caixin</a>). В условиях есть ссылки на санкционные списки OFAC/BIS США.</li>
+<li><b>Anthropic (Claude)</b> — ограничила сама компания: Россия не в <a href="https://www.anthropic.com/supported-countries">списке поддерживаемых</a>; запрет касается и компаний под контролем лиц из неподдерживаемых регионов.</li>
+<li><b>Groq, Mistral, Cerebras, NVIDIA, Hugging Face, xAI</b> — американские/европейские компании, подпадают под санкции и экспортные правила США/ЕС; NVIDIA ушла из России в 2022. <i>Не проверено: явно ли каждый из них блокирует пользователей из РФ, с какой даты и по какой причине — проверяй при регистрации; при отказе не обходи блокировку.</i></li>
+<li><b>DeepSeek</b> — доступ из РФ есть, ограничена только оплата (нет российских карт).</li>
+<li><b>Российские провайдеры для иностранцев / из-за рубежа:</b> GigaChat API для физлиц требует входа через Сбер ID; Yandex Cloud для оплаты — российская карта или юрлицо. <i>Не проверено: точные требования к иностранцам и работа из-за рубежа — уточни в документации Сбера и Яндекса.</i></li>
+</ul></div>
 </div></label>
 <label class="task"><input type="checkbox" data-id="s1-inst"><div><b>Установка Hermes.</b> Linux / macOS / WSL2: <pre>curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
 source ~/.bashrc   # или: source ~/.zshrc</pre> Windows (PowerShell, без WSL): <pre>iex (irm https://hermes-agent.nousresearch.com/install.ps1)</pre></div></label>
