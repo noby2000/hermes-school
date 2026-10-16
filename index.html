@@ -10,7 +10,28 @@
 <section><h2>Дорожная карта</h2><ol class="roadmap">
 <li class="cur"><a href="#step1">Шаг 1. Подготовка с нуля</a> — ← мы здесь</li>
 <li>Шаг 2. Первый запуск Hermes: разговор, модели, slash-команды</li>
-<li>Шаг 3. Идея и ТЗ: вместе с Hermes описать пользователей (нутрициолог, тренер, клиент) и функции</li>
+<li><b>Шаг 3. Идея и спецификация (OpenSpec + Hermes)</b>
+<div class="sub">Сначала спецификация — потом код. В папке проекта:
+<pre>mkdir ~/eatandfit && cd ~/eatandfit && git init
+openspec init --tools hermes</pre>
+<code>init</code> создаёт папку <code>openspec/</code> (спецификации и изменения) и навыки Hermes в <code>.hermes/skills/</code>. Hermes по умолчанию читает навыки только из <code>~/.hermes/skills/</code>, поэтому добавь папку проекта в <code>~/.hermes/config.yaml</code> (init напомнит):
+<pre>skills:
+  external_dirs:
+    - ~/eatandfit/.hermes/skills</pre>
+Цикл работы (в чате <code>hermes</code>):
+<ol>
+<li><b>explore</b> — обсудить идею без кода: кто пользователи (нутрициолог, тренер, клиент), что им нужно;</li>
+<li><b>propose</b> — агент создаёт изменение в <code>openspec/changes/&lt;имя&gt;/</code>: предложение, спецификации, дизайн и список задач. Ты читаешь и правишь;</li>
+<li><b>apply</b> — агент выполняет задачи и пишет код (в Hermes: <code>/openspec-apply-change</code>);</li>
+<li><b>archive</b> — изменение готово, спецификации переносятся в основные <code>openspec/specs/</code>.</li>
+</ol>
+Канонические имена в OpenSpec — <code>/opsx:explore</code>, <code>/opsx:propose</code>, <code>/opsx:apply</code>, <code>/opsx:archive</code>; в Hermes это навыки вида <code>/openspec-…</code> — точные имена напечатает <code>openspec init</code>. <i>Не проверено: точные имена навыков, кроме <code>openspec-apply-change</code>.</i>
+<p>Первое изменение для eatandfit — например:</p>
+<pre>/openspec-propose add-client-profile-and-meal-plan
+Нутрициолог создаёт карточку клиента (имя, возраст, рост, вес, цель,
+аллергии) и составляет ему план питания на неделю (приёмы пищи, калории,
+БЖУ). Клиент видит свой план. Персональные данные — по 152-ФЗ, хранить в РФ.</pre>
+Потом проверь <code>openspec list</code> и файлы в <code>openspec/changes/</code>, поправь спецификацию — и только после этого <code>apply</code>. <i>Не проверено: работу OpenSpec именно с Hermes на практике.</i></div></li>
 <li>Шаг 4. Инструменты, навыки и память Hermes — учим агента своему проекту (AGENTS.md, skills)</li>
 <li>Шаг 5. MVP: первая рабочая версия приложения в репозитории на GitHub</li>
 <li>Шаг 6. Деплой на eatandfit.online</li>
@@ -100,6 +121,13 @@ source ~/.bashrc   # или: source ~/.zshrc</pre> Windows (PowerShell, без W
 hermes model     # выбрать провайдера и модель</pre></div></label>
 <label class="task"><input type="checkbox" data-id="s1-run"><div><b>Проверь, что всё работает.</b> <pre>hermes doctor
 hermes</pre> Напиши агенту: «Привет! Какая у тебя модель и какие инструменты?». Выход — Ctrl+C. Обновление в будущем: <code>hermes update</code>.</div></label>
+<label class="task"><input type="checkbox" data-id="s1-node"><div><b>Node.js (нужен для OpenSpec).</b> OpenSpec требует <b>Node.js 20.19.0 или новее</b>. Проще всего — через nvm (<a href="https://github.com/nvm-sh/nvm">github.com/nvm-sh/nvm</a>) или установщик с <a href="https://nodejs.org">nodejs.org</a> (бери LTS):<pre>curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+source ~/.bashrc
+nvm install --lts
+node --version    # должно быть v20.19 или выше</pre><i>Версия скрипта nvm в команде — смотри актуальную в README nvm.</i></div></label>
+<label class="task"><input type="checkbox" data-id="s1-openspec"><div><b>OpenSpec — разработка «от спецификации».</b> <a href="https://github.com/Fission-AI/OpenSpec">OpenSpec</a> — инструмент, где ты сначала вместе с агентом описываешь <i>что</i> строим (предложение, спецификации, задачи), и только потом агент пишет код. Hermes Agent есть в <a href="https://openspec.dev/docs/supported-tools">списке поддерживаемых инструментов</a>.<pre>npm install -g @fission-ai/openspec@latest
+openspec --version
+# macOS/Linux можно и так: brew install openspec</pre>Подключение к проекту — в Шаге 3.</div></label>
 <label class="task"><input type="checkbox" data-id="s1-orch"><div><b>Агенты и оркестратор (знакомство).</b> В Hermes есть инструмент <code>delegate_task</code>: главный агент (оркестратор) раздаёт задачи <b>субагентам</b>. У каждого — свой чистый контекст и свой терминал; в главный разговор возвращается только итог. Параллельно — до 10 субагентов по умолчанию. Субагенты не могут писать в общую память, задавать тебе вопросы и отправлять сообщения.
 <p>Для eatandfit просто попроси главного агента, например:</p>
 <pre>Ты оркестратор проекта eatandfit (сервис для нутрициологов и тренеров).
