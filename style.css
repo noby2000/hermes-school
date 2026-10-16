@@ -12,3 +12,4 @@ button{margin-top:14px;padding:8px 14px;border:1px solid #ccc;border-radius:8px;
 details{margin:8px 0;padding:8px 10px;border:1px solid #e5e7eb;border-radius:8px}summary{cursor:pointer}
 .warn{background:#fff7e6;border-left:4px solid #f59e0b;padding:8px 10px;border-radius:6px}
 h4{margin:14px 0 4px}.foot{margin-top:14px;padding-top:8px;border-top:1px dashed #ccc;font-size:.9em;color:#374151}
+.tw{overflow-x:auto}table{border-collapse:collapse;font-size:.85em;min-width:640px}td,th{border:1px solid #e5e7eb;padding:6px;vertical-align:top;text-align:left}th{background:#f3f4f6}
