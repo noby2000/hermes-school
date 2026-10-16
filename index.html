@@ -6,15 +6,17 @@
 <p>Пошаговый план: как научиться работать с <a href="https://github.com/NousResearch/hermes-agent">Hermes Agent</a> — открытым AI-агентом от Nous Research. Он умеет работать в терминале, пользоваться инструментами, создавать себе «навыки», помнить тебя между сессиями и отвечать в Telegram.</p>
 <div class="progress"><div id="bar"></div></div><p id="ptext" class="muted"></p></header>
 
+<section><h2>Цель</h2><p>С помощью Hermes построить своё приложение для России — сервис для <b>нутрициологов и фитнес-тренеров</b> (клиенты, планы питания и тренировок, прогресс). Домен проекта уже есть: <b>eatandfit.online</b>. Hermes будет твоим напарником-разработчиком.</p></section>
 <section><h2>Дорожная карта</h2><ol class="roadmap">
 <li class="cur"><a href="#step1">Шаг 1. Подготовка с нуля</a> — ← мы здесь</li>
-<li>Шаг 2. Первый запуск и первый разговор (<code>hermes</code>, <code>hermes model</code>, slash-команды)</li>
-<li>Шаг 3. Инструменты и навыки (tools, toolsets, skills)</li>
-<li>Шаг 4. Память (MEMORY.md, USER.md, поиск по прошлым сессиям)</li>
-<li>Шаг 5. Мессенджер-шлюз (Telegram через <code>hermes gateway</code>)</li>
-<li>Шаг 6. Автоматизации по расписанию (cron)</li>
-<li>Шаг 7. Свой проект с Hermes</li>
-</ol><p class="muted">Шаги 2–7 будут расписаны позже.</p></section>
+<li>Шаг 2. Первый запуск Hermes: разговор, модели, slash-команды</li>
+<li>Шаг 3. Идея и ТЗ: вместе с Hermes описать пользователей (нутрициолог, тренер, клиент) и функции</li>
+<li>Шаг 4. Инструменты, навыки и память Hermes — учим агента своему проекту (AGENTS.md, skills)</li>
+<li>Шаг 5. MVP: первая рабочая версия приложения в репозитории на GitHub</li>
+<li>Шаг 6. Деплой на eatandfit.online</li>
+<li>Шаг 7. Особенности РФ: персональные данные по 152-ФЗ (хранение в России, согласие), доступные из РФ LLM и платёжные системы</li>
+<li>Шаг 8. Telegram-бот через <code>hermes gateway</code> и автоматизации (cron)</li>
+</ol><p class="muted">Шаги 2–8 будут расписаны позже.</p></section>
 
 <section id="step1"><h2>Шаг 1. Что сделать с нуля, чтобы начать разработку</h2>
 <label class="task"><input type="checkbox" data-id="s1-pc"><div><b>Компьютер и ОС.</b> Подойдёт Linux, macOS или Windows 10/11. Hermes работает на Windows и нативно, но для обучения удобнее <b>WSL2</b> (Linux внутри Windows): открой PowerShell от администратора и выполни <pre>wsl --install</pre> затем перезагрузи компьютер и задай имя пользователя Ubuntu.</div></label>
