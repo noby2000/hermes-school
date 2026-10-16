@@ -1,0 +1,11 @@
+*{box-sizing:border-box}body{margin:0;font:16px/1.55 system-ui,sans-serif;background:#f6f7fb;color:#1d2330}
+main{max-width:780px;margin:0 auto;padding:20px 16px 60px}h1{margin:.2em 0}a{color:#4b3fd1}
+section{background:#fff;border-radius:14px;padding:16px 20px;margin:18px 0;box-shadow:0 1px 4px #0001}
+.muted{color:#6b7280;font-size:.92em}.progress{height:10px;background:#e5e7eb;border-radius:5px;overflow:hidden}
+#bar{height:100%;width:0;background:#4b3fd1;transition:width .3s}.roadmap li{margin:6px 0}.cur{font-weight:600}
+.task{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #eee;cursor:pointer}
+.task input{width:22px;height:22px;flex:none;margin-top:3px;accent-color:#4b3fd1}
+.task:has(input:checked)>div{opacity:.55}
+pre{background:#111827;color:#e5e7eb;padding:10px 12px;border-radius:8px;overflow-x:auto;font-size:.88em;white-space:pre}
+code{background:#eef;padding:1px 5px;border-radius:4px;font-size:.9em}pre code{background:none}
+button{margin-top:14px;padding:8px 14px;border:1px solid #ccc;border-radius:8px;background:#fff;cursor:pointer}

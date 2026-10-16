@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Школа Hermes — учимся работать с AI-агентом</title><link rel="stylesheet" href="style.css"></head>
+<body><main>
+<header><h1>☤ Школа Hermes</h1>
+<p>Пошаговый план: как научиться работать с <a href="https://github.com/NousResearch/hermes-agent">Hermes Agent</a> — открытым AI-агентом от Nous Research. Он умеет работать в терминале, пользоваться инструментами, создавать себе «навыки», помнить тебя между сессиями и отвечать в Telegram.</p>
+<div class="progress"><div id="bar"></div></div><p id="ptext" class="muted"></p></header>
+
+<section><h2>Дорожная карта</h2><ol class="roadmap">
+<li class="cur"><a href="#step1">Шаг 1. Подготовка с нуля</a> — ← мы здесь</li>
+<li>Шаг 2. Первый запуск и первый разговор (<code>hermes</code>, <code>hermes model</code>, slash-команды)</li>
+<li>Шаг 3. Инструменты и навыки (tools, toolsets, skills)</li>
+<li>Шаг 4. Память (MEMORY.md, USER.md, поиск по прошлым сессиям)</li>
+<li>Шаг 5. Мессенджер-шлюз (Telegram через <code>hermes gateway</code>)</li>
+<li>Шаг 6. Автоматизации по расписанию (cron)</li>
+<li>Шаг 7. Свой проект с Hermes</li>
+</ol><p class="muted">Шаги 2–7 будут расписаны позже.</p></section>
+
+<section id="step1"><h2>Шаг 1. Что сделать с нуля, чтобы начать разработку</h2>
+<label class="task"><input type="checkbox" data-id="s1-pc"><div><b>Компьютер и ОС.</b> Подойдёт Linux, macOS или Windows 10/11. Hermes работает на Windows и нативно, но для обучения удобнее <b>WSL2</b> (Linux внутри Windows): открой PowerShell от администратора и выполни <pre>wsl --install</pre> затем перезагрузи компьютер и задай имя пользователя Ubuntu.</div></label>
+<label class="task"><input type="checkbox" data-id="s1-term"><div><b>Терминал.</b> macOS: «Терминал» (Cmd+Пробел → Terminal). Linux: Ctrl+Alt+T. Windows: «Ubuntu» из меню Пуск (WSL2) или Windows Terminal. Попробуй команды: <pre>pwd
+ls
+mkdir projects && cd projects</pre></div></label>
+<label class="task"><input type="checkbox" data-id="s1-git"><div><b>Git.</b> Проверь: <pre>git --version</pre> Если нет — Ubuntu/WSL: <code>sudo apt update && sudo apt install -y git curl</code>; macOS: <code>xcode-select --install</code>. Представься git'у: <pre>git config --global user.name "Твоё Имя"
+git config --global user.email "почта@example.com"</pre></div></label>
+<label class="task"><input type="checkbox" data-id="s1-gh"><div><b>Аккаунт GitHub.</b> Зарегистрируйся на <a href="https://github.com/signup">github.com/signup</a>, включи двухфакторную защиту. Установи GitHub CLI (<a href="https://cli.github.com">cli.github.com</a>) и войди: <pre>gh auth login</pre></div></label>
+<label class="task"><input type="checkbox" data-id="s1-py"><div><b>Python и uv.</b> Установщик Hermes сам ставит <code>uv</code> и нужный Python, но полезно иметь uv и для своих проектов: <pre>curl -LsSf https://astral.sh/uv/install.sh | sh
+uv --version
+uv python install</pre></div></label>
+<label class="task"><input type="checkbox" data-id="s1-ed"><div><b>Редактор кода.</b> Установи <a href="https://code.visualstudio.com">VS Code</a> (или Cursor). В Windows поставь расширение «WSL» и открывай папки командой <code>code .</code> из терминала Ubuntu.</div></label>
+<label class="task"><input type="checkbox" data-id="s1-key"><div><b>Ключ к модели (LLM).</b> Hermes нужен «мозг». Варианты: <a href="https://portal.nousresearch.com">Nous Portal</a> (одна подписка: модели + веб-поиск, картинки, голос) или <a href="https://openrouter.ai/keys">OpenRouter</a> (создай API-ключ, пополни баланс на пару долларов). <b>Ключ — как пароль: никому не показывай и не клади в GitHub.</b></div></label>
+<label class="task"><input type="checkbox" data-id="s1-inst"><div><b>Установка Hermes.</b> Linux / macOS / WSL2: <pre>curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
+source ~/.bashrc   # или: source ~/.zshrc</pre> Windows (PowerShell, без WSL): <pre>iex (irm https://hermes-agent.nousresearch.com/install.ps1)</pre></div></label>
+<label class="task"><input type="checkbox" data-id="s1-setup"><div><b>Подключи модель.</b> С Nous Portal: <pre>hermes setup --portal</pre> С OpenRouter или другим провайдером: <pre>hermes setup     # мастер настройки
+hermes model     # выбрать провайдера и модель</pre></div></label>
+<label class="task"><input type="checkbox" data-id="s1-run"><div><b>Проверь, что всё работает.</b> <pre>hermes doctor
+hermes</pre> Напиши агенту: «Привет! Какая у тебя модель и какие инструменты?». Выход — Ctrl+C. Обновление в будущем: <code>hermes update</code>.</div></label>
+<p class="muted">Документация: <a href="https://hermes-agent.nousresearch.com/docs/">hermes-agent.nousresearch.com/docs</a> · <a href="https://hermes-agent.nousresearch.com/docs/getting-started/quickstart">Quickstart</a></p>
+<button id="reset">Сбросить галочки</button>
+</section></main>
+<script>
+const b=[...document.querySelectorAll('input[type=checkbox]')],K='hermes-school:';
+function upd(){const d=b.filter(x=>x.checked).length;document.getElementById('bar').style.width=(100*d/b.length)+'%';document.getElementById('ptext').textContent=`Шаг 1: выполнено ${d} из ${b.length}`+(d==b.length?' 🎉':'');}
+b.forEach(x=>{x.checked=localStorage.getItem(K+x.dataset.id)==='1';x.onchange=()=>{localStorage.setItem(K+x.dataset.id,x.checked?'1':'0');upd();};});
+document.getElementById('reset').onclick=()=>{b.forEach(x=>{x.checked=false;localStorage.removeItem(K+x.dataset.id)});upd();};upd();
+</script></body></html>
