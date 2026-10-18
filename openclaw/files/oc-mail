@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# oc-mail (owner side): mailbox shared with the guest's bots on the OpenClaw server.
+command -v ssh >/dev/null || { sudo apt-get install -y -qq openssh-client >/dev/null 2>&1 || { echo "ssh missing" >&2; exit 2; }; }
+# oc-mail send [--to guest|owner] --from NAME --subject "S" < body   (default to: guest)
+# oc-mail inbox [--all] | oc-mail read ID | oc-mail reply ID --from NAME < body
+[ $# -ge 1 ] || { sed -n 2,4p "$0"; exit 2; }
+A=(); while [ $# -gt 0 ]; do
+  if [ "$1" = --subject ]; then A+=(--subject-b64 "$(printf %s "$2" | base64 -w0)"); shift 2; else A+=("$1"); shift; fi; done
+[ "${A[0]}" = send ] && { case " ${A[*]} " in *" --to "*) ;; *) A+=(--to guest);; esac; }
+Q=$(printf '%q ' "${A[@]}")
+case "${A[0]}" in send|reply) [ -t 0 ] && { echo "body on stdin" >&2; exit 2; };; *) exec </dev/null;; esac
+HOST="${OC_HOST:-openclaw@<SERVER_IP>}"   # replace <SERVER_IP> or export OC_HOST
+ssh -i ~/.ssh/oc_owner -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new -o ConnectTimeout=15 -o LogLevel=ERROR "$HOST" "python3 ~/bin/ocmail.py owner $Q"

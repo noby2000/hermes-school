@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# oc-mail (guest side): mailbox shared with the owner's bots on the OpenClaw server.
+# oc-mail send --from NAME --subject "S" < body      (always goes to owner)
+# oc-mail inbox [--all] | oc-mail read ID | oc-mail reply ID --from NAME < body
+HOST="${OC_HOST:-openclaw@<SERVER_IP>}"; KEY=${OC_KEY:-$HOME/.ssh/oc_guest}
+rssh(){ ssh -i "$KEY" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=${OC_KNOWN_HOSTS:-$HOME/.ssh/known_hosts} -o ConnectTimeout=15 -o LogLevel=ERROR "$HOST" "$@"; }
+cmd=$1; shift || { sed -n 2,4p "$0"; exit 2; }
+case "$cmd" in
+  send) A=(); while [ $# -gt 0 ]; do case "$1" in
+          --to) [ "$2" = owner ] || { echo "can only send to owner" >&2; exit 2; }; shift 2;;
+          --from) A+=(--from "$2"); shift 2;;
+          --subject) A+=(--subject-b64 "$(printf %s "$2" | base64 -w0)"); shift 2;;
+          *) echo "bad option $1" >&2; exit 2;; esac; done
+        [ -t 0 ] && { echo "body on stdin" >&2; exit 2; }
+        rssh mail send --to owner "${A[@]}";;
+  inbox) rssh mail inbox "$@" </dev/null;;
+  read) rssh mail read "$1" </dev/null;;
+  reply) [ -t 0 ] && { echo "body on stdin" >&2; exit 2; }; rssh mail reply "$@";;
+  *) sed -n 2,4p "$0"; exit 2;;
+esac

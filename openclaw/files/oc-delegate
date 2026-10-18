@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# oc-delegate: hand a task to the owner's OpenClaw server, print only the final reply.
+command -v ssh >/dev/null || { sudo apt-get install -y -qq openssh-client >/dev/null 2>&1 || { echo "ssh missing" >&2; exit 2; }; }
+# Usage: oc-delegate [--agent main|researcher|worker] [--timeout 600] [--session NAME] [--bg] "task"  (or task on stdin)
+#        oc-delegate --result JOBID [--wait]     | oc-delegate --jobs
+set -o pipefail
+HOST="${OC_HOST:-openclaw@<SERVER_IP>}"   # replace <SERVER_IP> or export OC_HOST=openclaw@your.server
+AGENT=main; TIMEOUT=600; SESSION=""; BG=0; RESULT=""; WAIT=0; JOBS=0; TASK=""
+while [ $# -gt 0 ]; do case "$1" in
+  --agent) AGENT=$2; shift 2;; --timeout) TIMEOUT=$2; shift 2;;
+  --session) SESSION=$2; shift 2;; --bg) BG=1; shift;;
+  --result) RESULT=$2; shift 2;; --wait) WAIT=1; shift;; --jobs) JOBS=1; shift;;
+  -h|--help) sed -n 2,4p "$0"; exit 0;;
+  --) shift; TASK="$*"; break;; *) TASK="$*"; break;; esac; done
+case "$AGENT" in main|researcher|worker) ;; *) echo "bad agent" >&2; exit 2;; esac
+[[ "$TIMEOUT" =~ ^[0-9]+$ ]] || { echo "bad timeout" >&2; exit 2; }
+rssh(){ ssh -i ~/.ssh/oc_owner -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new -o ConnectTimeout=15 -o LogLevel=ERROR "$HOST" "$@"; }
+# remote helper: extracts final text from openclaw --json output
+PYX='import json,sys
+raw=open(sys.argv[1]).read(); i=raw.find("{")
+try: d=json.loads(raw[i:])
+except Exception: sys.exit(3)
+def txt(d):
+  r=d.get("result",d)
+  p=r.get("payloads") if isinstance(r,dict) else None
+  if p: return "\n".join(x.get("text","") for x in p if x.get("text"))
+  for k in ("reply","text","output","message"):
+    if isinstance(r,dict) and isinstance(r.get(k),str): return r[k]
+  return ""
+t=txt(d).strip()
+if not t: sys.exit(4)
+print(t)'
+PYB=$(printf %s "$PYX" | base64 -w0)
+if [ "$JOBS" = 1 ]; then rssh 'cd ~/oc-jobs 2>/dev/null && for f in *.task; do j=${f%.task}; s=run; [ -f $j.rc ] && s="rc=$(cat $j.rc)"; echo "$j $s"; done'; exit; fi
+if [ -n "$RESULT" ]; then
+  [[ "$RESULT" =~ ^[A-Za-z0-9_-]+$ ]] || { echo "bad id" >&2; exit 2; }
+  rssh "J=~/oc-jobs/$RESULT; [ -f \$J.task ] || { echo 'no such job' >&2; exit 2; }
+    while [ ! -f \$J.rc ]; do [ $WAIT = 1 ] || { echo 'RUNNING' >&2; exit 75; }; sleep 5; done
+    rc=\$(cat \$J.rc); [ -s \$J.txt ] && cat \$J.txt; [ \"\$rc\" = 0 ] || { tail -c 600 \$J.err >&2; exit \$rc; }"
+  exit $?
+fi
+[ -z "$TASK" ] && [ ! -t 0 ] && TASK=$(cat)
+[ -z "$TASK" ] && { echo "no task" >&2; exit 2; }
+ID="oc-$(date +%Y%m%d-%H%M%S)-$RANDOM"
+SID=${SESSION:-$ID}; [[ "$SID" =~ ^[A-Za-z0-9_.-]+$ ]] || { echo "bad session" >&2; exit 2; }
+TB=$(printf %s "$TASK" | base64 -w0)
+REMOTE="export XDG_RUNTIME_DIR=/run/user/\$(id -u); mkdir -p ~/oc-jobs; cd ~/oc-jobs
+echo $TB | base64 -d > $ID.task; echo $PYB | base64 -d > .ocx.py
+run(){ timeout $((TIMEOUT+60)) openclaw agent --agent $AGENT --session-key $SID --timeout $TIMEOUT --json --message-file $ID.task > $ID.json 2> $ID.err; rc=\$?
+  if [ \$rc = 0 ]; then python3 .ocx.py $ID.json > $ID.txt || rc=\$?; fi; echo \$rc > $ID.rc; }"
+if [ "$BG" = 1 ]; then
+  rssh "$REMOTE
+  export -f run 2>/dev/null; nohup bash -c \"\$(declare -f run); run\" >/dev/null 2>&1 & echo $ID"
+else
+  rssh "$REMOTE
+  run; rc=\$(cat $ID.rc); [ -s $ID.txt ] && cat $ID.txt; [ \"\$rc\" = 0 ] || { echo \"error rc=\$rc\" >&2; tail -c 600 $ID.err >&2; }; exit \$rc"
+fi

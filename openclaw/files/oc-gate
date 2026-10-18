@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# oc-gate: forced command for the guest SSH key (second user). Only openclaw delegation, nothing else.
+set -u -o pipefail
+export XDG_RUNTIME_DIR=/run/user/$(id -u)
+export PATH=/usr/local/bin:/usr/bin:/bin:$HOME/.local/bin:$HOME/.npm-global/bin
+JD=$HOME/oc-jobs-guest; mkdir -p "$JD"; cd "$JD" || exit 1
+die(){ echo "oc-gate: $*" >&2; exit 2; }
+read -r -a A <<< "${SSH_ORIGINAL_COMMAND:-}"
+[ "${#A[@]}" -le 8 ] || die "too many args"
+[ "${#A[@]}" -ge 1 ] || die "no command"
+case "${A[0]}" in
+  mail) for x in "${A[@]:1}"; do [[ "$x" =~ ^[A-Za-z0-9._@:+/=-]{1,400}$ ]] || die "bad mail arg"; done
+        exec python3 "$HOME/bin/ocmail.py" guest "${A[@]:1}";;
+  run|result|jobs) ;; *) die "rejected";; esac
+AGENT=guest; TIMEOUT=600; BG=0; RESULT=""; WAIT=0; JOBS=0; i=0
+while [ $i -lt ${#A[@]} ]; do a=${A[$i]}; case "$a" in
+  run) ;; result) i=$((i+1)); RESULT=${A[$i]:-}; [ -n "$RESULT" ] || die "no id";; jobs) JOBS=1;;
+  --agent) i=$((i+1)); AGENT=${A[$i]:-};;
+  --timeout) i=$((i+1)); TIMEOUT=${A[$i]:-};;
+  --bg) BG=1;; --wait) WAIT=1;;
+  *) die "rejected";; esac; i=$((i+1)); done
+case "$AGENT" in guest|researcher|worker) ;; *) die "agent not allowed";; esac
+[[ "$TIMEOUT" =~ ^[0-9]{1,4}$ ]] || die "bad timeout"; [ "$TIMEOUT" -ge 10 ] || TIMEOUT=10; [ "$TIMEOUT" -le 900 ] || TIMEOUT=900
+if [ "$JOBS" = 1 ]; then shopt -s nullglob; for f in *.task; do j=${f%.task}; s=run; [ -f "$j.rc" ] && s="rc=$(cat "$j.rc")"; echo "$j $s"; done; exit 0; fi
+if [ -n "$RESULT" ]; then
+  [[ "$RESULT" =~ ^w-[0-9]{8}-[0-9]{6}-[0-9]{1,5}$ ]] || die "bad id"
+  [ -f "$RESULT.task" ] || die "no such job"
+  while [ ! -f "$RESULT.rc" ]; do [ "$WAIT" = 1 ] || { echo RUNNING >&2; exit 75; }; sleep 5; done
+  rc=$(cat "$RESULT.rc"); [ -s "$RESULT.txt" ] && cat "$RESULT.txt"
+  [ "$rc" = 0 ] || { tail -c 600 "$RESULT.err" >&2; exit "$rc"; }; exit 0
+fi
+ID="w-$(date +%Y%m%d-%H%M%S)-$RANDOM"
+head -c 200000 > "$ID.task"; [ -s "$ID.task" ] || { rm -f "$ID.task"; die "no task on stdin"; }
+run(){ timeout $((TIMEOUT+60)) openclaw agent --agent "$AGENT" --session-key "$ID" --timeout "$TIMEOUT" --json --message-file "$ID.task" > "$ID.json" 2> "$ID.err"; rc=$?
+  if [ $rc = 0 ]; then python3 "$HOME/bin/ocx.py" "$ID.json" > "$ID.txt" || rc=$?; fi; echo $rc > "$ID.rc"; }
+if [ "$BG" = 1 ]; then setsid bash -c "$(declare -f run); AGENT=$AGENT TIMEOUT=$TIMEOUT ID=$ID run" </dev/null >/dev/null 2>&1 & disown; echo "$ID"; exit 0; fi
+run; rc=$(cat "$ID.rc"); [ -s "$ID.txt" ] && cat "$ID.txt"
+[ "$rc" = 0 ] || { echo "error rc=$rc" >&2; tail -c 600 "$ID.err" >&2; }; exit "$rc"

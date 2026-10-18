@@ -1,0 +1,6 @@
+{
+  "requireLogin": true,
+  "hidePaidModels": true,
+  "excludeTosAvoid": true,
+  "modelVisibilityDenylist": ["openrouter/auto", "openrouter/stealth/ox-alpha"]
+}

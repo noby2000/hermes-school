@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# oc-delegate: hand a task to the OpenClaw server (agent guest by default), print only the final reply.
+# Usage: oc-delegate [--agent guest|researcher|worker] [--timeout N<=900] [--bg] "task"   (or task on stdin)
+#        oc-delegate --result ID [--wait]   |   oc-delegate --jobs
+set -o pipefail
+HOST="${OC_HOST:-openclaw@<SERVER_IP>}"; KEY=${OC_KEY:-$HOME/.ssh/oc_guest}
+AGENT=guest; TIMEOUT=600; BG=0; RESULT=""; WAIT=0; JOBS=0; TASK=""
+while [ $# -gt 0 ]; do case "$1" in
+  --agent) AGENT=$2; shift 2;; --timeout) TIMEOUT=$2; shift 2;;
+  --bg) BG=1; shift;; --result) RESULT=$2; shift 2;; --wait) WAIT=1; shift;; --jobs) JOBS=1; shift;;
+  -h|--help) sed -n 2,4p "$0"; exit 0;; --) shift; TASK="$*"; break;; *) TASK="$*"; break;; esac; done
+case "$AGENT" in guest|researcher|worker) ;; *) echo "bad agent" >&2; exit 2;; esac
+[[ "$TIMEOUT" =~ ^[0-9]+$ ]] && [ "$TIMEOUT" -le 900 ] || { echo "bad timeout (max 900)" >&2; exit 2; }
+rssh(){ ssh -i "$KEY" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=${OC_KNOWN_HOSTS:-$HOME/.ssh/known_hosts} -o ConnectTimeout=15 -o LogLevel=ERROR "$HOST" "$@"; }
+if [ "$JOBS" = 1 ]; then rssh jobs </dev/null; exit; fi
+if [ -n "$RESULT" ]; then W=""; [ "$WAIT" = 1 ] && W=--wait; rssh result "$RESULT" $W </dev/null; exit; fi
+[ -z "$TASK" ] && [ ! -t 0 ] && TASK=$(cat)
+[ -z "$TASK" ] && { echo "no task" >&2; exit 2; }
+B=""; [ "$BG" = 1 ] && B=--bg
+printf %s "$TASK" | rssh run --agent "$AGENT" --timeout "$TIMEOUT" $B

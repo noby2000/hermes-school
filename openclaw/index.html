@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenClaw на бесплатных моделях — инструкция</title><meta name="description" content="Как вручную собрать систему OpenClaw + OmniRoute на бесплатных моделях: на своём компьютере или на сервере DigitalOcean.">
+<style>
+:root{--bg:#fbfbfd;--fg:#1d2330;--mut:#5b6475;--acc:#2f6fed;--line:#e3e6ee;--code:#f3f5f9;--warn:#fff7e6}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+.wrap{display:grid;grid-template-columns:290px minmax(0,1fr);gap:40px;max-width:1280px;margin:0 auto;padding:24px}
+nav.toc{position:sticky;top:16px;align-self:start;max-height:calc(100vh - 32px);overflow:auto;font-size:14px;border-right:1px solid var(--line);padding-right:16px}
+nav.toc ul{list-style:none;padding-left:12px;margin:4px 0}nav.toc>div>ul{padding-left:0}
+nav.toc a{color:var(--mut);text-decoration:none;display:block;padding:2px 0}nav.toc a:hover{color:var(--acc)}
+nav.toc .ttl{font-weight:600;color:var(--fg);margin-bottom:8px}
+main{min-width:0}h1{font-size:30px;line-height:1.25;margin-top:0}h2{margin-top:44px;padding-top:8px;border-top:1px solid var(--line)}h3{margin-top:28px}
+a{color:var(--acc)}code{background:var(--code);padding:1px 5px;border-radius:4px;font:13.5px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+pre{position:relative;background:var(--code);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow:auto}
+pre code{background:none;padding:0;font-size:13px;white-space:pre}
+.copy{position:absolute;top:6px;right:6px;font:12px sans-serif;border:1px solid var(--line);background:#fff;border-radius:6px;padding:3px 8px;cursor:pointer;color:var(--mut)}
+.copy:hover{color:var(--acc);border-color:var(--acc)}
+table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0;display:block;overflow-x:auto}
+th,td{border:1px solid var(--line);padding:7px 10px;vertical-align:top;text-align:left}th{background:#f0f2f7}
+blockquote{margin:16px 0;padding:10px 16px;background:var(--warn);border-left:4px solid #f0b429;border-radius:4px}
+details{background:#f6f8fc;border:1px solid var(--line);border-radius:8px;padding:8px 14px;margin:12px 0}summary{cursor:pointer;font-weight:500}
+.tabs{display:flex;gap:8px;margin:28px 0 0;flex-wrap:wrap;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:2}
+.tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 16px;font-size:15px;cursor:pointer;color:var(--mut)}
+.tab.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.js .variant{display:none}.js .variant.on{display:block}
+hr{border:0;border-top:1px solid var(--line);margin:32px 0}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}nav.toc{position:static;max-height:none;border-right:0;border-bottom:1px solid var(--line);padding-bottom:12px}}
+@media print{nav.toc,.tabs,.copy{display:none}.js .variant{display:block}}
+</style><script>
+document.documentElement.classList.add('js');
+(function(){
+ function show(v){document.querySelectorAll('.variant').forEach(function(d){d.classList.toggle('on',d.dataset.variant===v)});
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('on',t.dataset.v===v);t.setAttribute('aria-selected',t.dataset.v===v)});
+  try{localStorage.setItem('oc-variant',v)}catch(e){}}
+ function fromHash(){var h=decodeURIComponent(location.hash.slice(1));if(!h)return null;
+  var el=document.getElementById(h);if(!el)return null;var p=el.closest('.variant');return p?p.dataset.variant:null}
+ document.addEventListener('DOMContentLoaded',function(){
+  var v=fromHash()||(function(){try{return localStorage.getItem('oc-variant')}catch(e){return null}})()||'b';show(v);
+  document.querySelectorAll('.tab').forEach(function(t){t.addEventListener('click',function(){show(t.dataset.v)})});
+  window.addEventListener('hashchange',function(){var v=fromHash();if(v){show(v);var el=document.getElementById(decodeURIComponent(location.hash.slice(1)));if(el)el.scrollIntoView()}});
+  document.querySelectorAll('pre').forEach(function(p){var b=document.createElement('button');b.className='copy';b.type='button';b.textContent='Копировать';
+   b.addEventListener('click',function(){var t=p.querySelector('code')?p.querySelector('code').innerText:p.innerText;
+    var done=function(){b.textContent='Скопировано';setTimeout(function(){b.textContent='Копировать'},1500)};
+    if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(t).then(done)}else{var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();done()}});
+   p.appendChild(b)});
+ });
+})();
+</script></head>
+<body><div class="wrap"><nav class="toc"><div class="ttl">Содержание</div><div class="toc">
+<ul>
+<li><a href="#1-что-получится">1. Что получится</a></li>
+<li><a href="#2-аккаунты-и-бесплатные-ключи">2. Аккаунты и бесплатные ключи</a></li>
+<li><a href="#3a-вариант-a-установка-на-свой-компьютер">3A. Вариант A: установка на свой компьютер</a><ul>
+<li><a href="#3a1-требования">3A.1 Требования</a></li>
+<li><a href="#3a2-установка-openclaw">3A.2 Установка OpenClaw</a></li>
+<li><a href="#3a3-первичная-настройка-onboarding">3A.3 Первичная настройка (onboarding)</a></li>
+<li><a href="#3a4-omniroute-на-своём-компьютере">3A.4 OmniRoute на своём компьютере</a></li>
+</ul>
+</li>
+<li><a href="#3b-вариант-b-сервер-digitalocean">3B. Вариант B: сервер DigitalOcean</a><ul>
+<li><a href="#3b1-создание-droplet">3B.1 Создание droplet</a></li>
+<li><a href="#3b2-пользователь-swap-базовые-пакеты">3B.2 Пользователь, swap, базовые пакеты</a></li>
+<li><a href="#3b3-node-24-nodesource">3B.3 Node 24 (NodeSource)</a></li>
+<li><a href="#3b4-openclaw">3B.4 OpenClaw</a></li>
+<li><a href="#3b5-onboarding-и-служба-systemd">3B.5 Onboarding и служба systemd</a></li>
+</ul>
+</li>
+<li><a href="#4-модели-и-запасные-fallbacks">4. Модели и запасные (fallbacks)</a><ul>
+<li><a href="#41-ключи-провайдеров">4.1 Ключи провайдеров</a></li>
+<li><a href="#42-почему-json-а-не-openclaw-config-set">4.2 Почему JSON, а не openclaw config set</a></li>
+<li><a href="#43-как-применить-фрагмент">4.3 Как применить фрагмент</a></li>
+</ul>
+</li>
+<li><a href="#5-агенты-и-ограничения-подагентов">5. Агенты и ограничения подагентов</a><ul>
+<li><a href="#51-создание-агентов">5.1 Создание агентов</a></li>
+</ul>
+</li>
+<li><a href="#6-omniroute-один-умный-вход-на-бесплатных-провайдеров">6. OmniRoute: один «умный» вход на бесплатных провайдеров</a><ul>
+<li><a href="#61-установка-под-пользователем-openclaw">6.1 Установка (под пользователем openclaw)</a></li>
+<li><a href="#62-файл-окружения-omnirouteenv">6.2 Файл окружения ~/.omniroute/.env</a></li>
+<li><a href="#63-служба-systemd-с-лимитами-памяти">6.3 Служба systemd с лимитами памяти</a></li>
+<li><a href="#64-дашборд-пароль-и-ключ-для-openclaw">6.4 Дашборд, пароль и ключ для OpenClaw</a></li>
+<li><a href="#65-провайдеры-только-бесплатные-по-ключам">6.5 Провайдеры: только бесплатные, по ключам</a></li>
+</ul>
+</li>
+<li><a href="#7-tailscale-serve-и-приложение-на-iphone">7. Tailscale Serve и приложение на iPhone</a><ul>
+<li><a href="#71-tailscale-на-сервере-или-компьютере">7.1 Tailscale на сервере (или компьютере)</a></li>
+<li><a href="#72-подключение-iphone">7.2 Подключение iPhone</a></li>
+</ul>
+</li>
+<li><a href="#8-делегирование-задач-от-других-ботов">8. Делегирование задач от других ботов</a><ul>
+<li><a href="#81-ключ-владельца">8.1 Ключ владельца</a></li>
+<li><a href="#82-oc-delegate-отдать-задачу-и-получить-ответ">8.2 oc-delegate: отдать задачу и получить ответ</a></li>
+<li><a href="#83-навык-skill-для-ботов">8.3 Навык (skill) для ботов</a></li>
+<li><a href="#84-второй-пользователь-ключ-с-forced-command-oc-gate">8.4 Второй пользователь: ключ с forced command (oc-gate)</a></li>
+<li><a href="#85-oc-mail-почта-между-ботами-двух-людей">8.5 oc-mail: почта между ботами двух людей</a></li>
+<li><a href="#86-для-варианта-a">8.6 Для варианта A</a></li>
+</ul>
+</li>
+<li><a href="#9-проверки-и-решение-проблем">9. Проверки и решение проблем</a><ul>
+<li><a href="#91-быстрая-проверка-всей-системы">9.1 Быстрая проверка всей системы</a></li>
+<li><a href="#92-таблица-проблем">9.2 Таблица проблем</a></li>
+<li><a href="#93-откат">9.3 Откат</a></li>
+</ul>
+</li>
+<li><a href="#10-безопасность">10. Безопасность</a></li>
+<li><a href="#приложение-проверенные-версии-и-пути">Приложение: проверенные версии и пути</a></li>
+</ul>
+</div>
+
+<p style="margin-top:12px"><a href="files/index.html">Все файлы →</a> · <a href="openclaw-setup-ru.md">Markdown</a></p></nav>
+<main><h1 id="openclaw-на-бесплатных-моделях-полная-инструкция-с-нуля">OpenClaw на бесплатных моделях: полная инструкция «с нуля»</h1>
+<p>Инструкция собрана по реальной работающей системе (октябрь 2026): OpenClaw 2026.10.4, OmniRoute 3.8.51, Node 24, Ubuntu 24.04. Ключи, пароли, токены и адреса заменены на заглушки вида <code>&lt;SERVER_IP&gt;</code>, <code>&lt;TAILNET&gt;</code>, <code>&lt;YOUR_OPENROUTER_KEY&gt;</code>. Подставляйте свои.</p>
+<p>Два варианта установки:</p>
+<ul>
+<li><strong>Вариант A:</strong> OpenClaw на своём компьютере (macOS, Linux или Windows через WSL2).</li>
+<li><strong>Вариант B:</strong> OpenClaw на сервере DigitalOcean. Так сделано у нас.</li>
+</ul>
+<p>Разделы 4–10 одинаковы для обоих вариантов. Там, где есть разница, это помечено.</p>
+<p>Все готовые файлы (скрипты, фрагменты конфигурации, systemd-юниты) лежат в папке <a href="files/index.html">files/</a>.</p>
+<hr />
+<h2 id="1-что-получится">1. Что получится</h2>
+<pre><code class="language-text"> iPhone (приложение OpenClaw)                Боты-помощники (другие ИИ-агенты)
+        │  wss://&lt;TAILNET-HOST&gt;                     │  ssh + oc-delegate / oc-mail
+        ▼                                           ▼
+ ┌──────────── Tailscale (частная сеть) ──┐   ┌──────── SSH (порт 22) ────────┐
+ └───────────────────┬────────────────────┘   └───────────────┬───────────────┘
+                     ▼                                        ▼
+ ┌───────────────────────────── Сервер / компьютер ─────────────────────────────┐
+ │  OpenClaw Gateway (127.0.0.1:18789, systemd user service)                    │
+ │    ├─ агент main        ── координатор, сам раздаёт задачи ──┐               │
+ │    ├─ агент guest       ── второй пользователь (своя память)─┤               │
+ │    ├─ агент researcher  ── поиск и чтение в интернете   ◄────┤ subagents     │
+ │    └─ агент worker      ── код и команды на сервере     ◄────┘ (макс. 2)     │
+ │                                                                              │
+ │  OmniRoute (127.0.0.1:20128) ── модель &quot;auto&quot;: Gemini / Groq / NVIDIA        │
+ │  Прямые провайдеры (запасные): OpenRouter :free, NVIDIA, Google, Groq, Z.ai  │
+ │                                                                              │
+ │  ~/bin/oc-gate (вход второго пользователя), ~/bin/ocmail.py (почта ботов)    │
+ └──────────────────────────────────────────────────────────────────────────────┘
+</code></pre>
+<p>Как это работает:</p>
+<ul>
+<li><strong>Телефон</strong> подключается к шлюзу (Gateway) через Tailscale Serve. Шлюз слушает только <code>127.0.0.1</code>, в интернет он не открыт.</li>
+<li><strong>Агенты.</strong> <code>main</code> — главный, он сам передаёт работу <code>researcher</code> и <code>worker</code> (режим <code>delegationMode: "prefer"</code>). <code>guest</code> — отдельный агент второго пользователя со своей памятью, ему доступны те же помощники.</li>
+<li><strong>Модели</strong> только бесплатные. Первой идёт <code>omniroute/auto</code>: OmniRoute сам выбирает живого бесплатного провайдера. Если он не ответил, OpenClaw идёт по списку запасных моделей.</li>
+<li><strong>Делегирование от ботов.</strong> Другие ИИ-боты (например, на отдельной Linux-машине) отдают задачи командой <code>oc-delegate</code> по SSH и забирают только итоговый ответ. Боты разных людей обмениваются сообщениями через <code>oc-mail</code>. Второй пользователь входит по SSH-ключу, который пускает только в <code>oc-gate</code>.</li>
+</ul>
+<hr />
+<h2 id="2-аккаунты-и-бесплатные-ключи">2. Аккаунты и бесплатные ключи</h2>
+<p>Лимиты указаны по официальным страницам на октябрь 2026. Они меняются: перепроверяйте по ссылкам.</p>
+<table>
+<thead>
+<tr>
+<th>Сервис</th>
+<th>Где взять</th>
+<th>Что даёт бесплатно</th>
+<th>Важно</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>OpenRouter</strong></td>
+<td><a href="https://openrouter.ai/settings/keys">openrouter.ai/settings/keys</a>, пополнение: <a href="https://openrouter.ai/settings/credits">settings/credits</a></td>
+<td>Модели с суффиксом <code>:free</code> и роутер <code>openrouter/free</code>. 20 запросов в минуту; 50 в день, если куплено меньше $10 кредитов за всё время, и <strong>1000 в день</strong>, если куплено от $10 (<a href="https://openrouter.ai/docs/api/reference/limits">документация</a>).</td>
+<td>Мы один раз положили $10–11 <strong>только</strong> чтобы поднять дневной лимит. Кредиты тратятся лишь на платные модели. Поэтому никогда не используйте <code>openrouter/auto</code>: это платный роутер.</td>
+</tr>
+<tr>
+<td><strong>Groq</strong></td>
+<td><a href="https://console.groq.com/keys">console.groq.com/keys</a></td>
+<td>Для <code>openai/gpt-oss-120b</code>: 30 запросов в минуту, 1000 в день, 8 000 токенов в минуту, 200 000 в день (<a href="https://console.groq.com/docs/rate-limits">rate limits</a>).</td>
+<td>8 000 токенов в минуту — это мало для большого системного промпта агента. Отсюда ошибка 413, см. раздел 9.</td>
+</tr>
+<tr>
+<td><strong>Google Gemini (AI Studio)</strong></td>
+<td><a href="https://aistudio.google.com/apikey">aistudio.google.com/apikey</a></td>
+<td><code>gemini-3.8-flash</code>, <code>gemma-4-31b-it</code> на бесплатном уровне. Конкретные лимиты Google показывает в AI Studio, публичной таблицы нет (<a href="https://ai.google.dev/gemini-api/docs/rate-limits">rate limits</a>).</td>
+<td>Карта не нужна. Условия бесплатного уровня смотрите в Terms Gemini API.</td>
+</tr>
+<tr>
+<td><strong>NVIDIA NIM</strong></td>
+<td><a href="https://build.nvidia.com">build.nvidia.com</a> → API key (<code>nvapi-…</code>)</td>
+<td><code>z-ai/glm-5.3</code> и другие модели</td>
+<td>Это <strong>пробные кредиты</strong>, а не вечный бесплатный доступ. Когда кончатся, модель отвалится, и сработают запасные.</td>
+</tr>
+<tr>
+<td><strong>Z.ai</strong></td>
+<td><a href="https://z.ai">z.ai</a> → API keys; цены: <a href="https://docs.z.ai/guides/overview/pricing">docs.z.ai/guides/overview/pricing</a></td>
+<td><code>glm-4.7-flash</code> и <code>glm-4.5-flash</code> бесплатны (Free по всем статьям).</td>
+<td>Остальные модели GLM платные.</td>
+</tr>
+<tr>
+<td><strong>Tailscale</strong></td>
+<td><a href="https://login.tailscale.com/start">login.tailscale.com/start</a></td>
+<td>Бесплатный личный тариф</td>
+<td>Нужен для доступа с телефона.</td>
+</tr>
+<tr>
+<td><strong>DigitalOcean</strong> (только вариант B)</td>
+<td><a href="https://cloud.digitalocean.com">cloud.digitalocean.com</a></td>
+<td>—</td>
+<td>Droplet: $6/мес (1 ГБ) или $12/мес (2 ГБ, рекомендуем).</td>
+</tr>
+</tbody>
+</table>
+<p>Что мы проверили и <strong>не</strong> подключаем:</p>
+<ul>
+<li><strong>Kimi</strong> — платный.</li>
+<li><strong>Cerebras</strong> — требует карту.</li>
+<li><strong>GitHub Models</strong> — закрыт с 30.07.2026.</li>
+<li><strong>SambaNova</strong> — кредиты кончились, теперь требует карту.</li>
+<li><strong>Mistral</strong> — на бесплатном тарифе постоянно отвечает 429.</li>
+<li><strong>Plugsky</strong> — слабые модели.</li>
+<li>В OmniRoute: всё с пометкой <code>tos: avoid</code> (например, Kiro, OpenCode Free) и любые подписки через OAuth (Cursor, Grok, Claude), потому что за это могут забанить аккаунт.</li>
+</ul>
+<blockquote>
+<p><strong>Конфиденциальность.</strong> У многих бесплатных моделей (Inkling, Nemotron и др. на OpenRouter) провайдер может обучаться на ваших запросах. Не отправляйте через них ничего приватного.</p>
+</blockquote>
+<p>Ключи храните в менеджере паролей. Ниже они везде вводятся через stdin или <code>read -s</code>, чтобы не оставаться в истории shell.</p>
+<hr />
+<div class="tabs" id="variants" role="tablist"><button class="tab" data-v="a" role="tab">Вариант A: свой компьютер</button><button class="tab" data-v="b" role="tab">Вариант B: сервер DigitalOcean</button></div>
+
+<div class="variant" data-variant="a">
+<p><a id="variant-a"></a></p>
+<h2 id="3a-вариант-a-установка-на-свой-компьютер">3A. Вариант A: установка на свой компьютер</h2>
+<p>Подходит, если компьютер почти всегда включён. Боты на других машинах смогут достучаться до него только по SSH (например, через Tailscale). Если компьютер часто спит, берите вариант B.</p>
+<h3 id="3a1-требования">3A.1 Требования</h3>
+<ul>
+<li>Node <strong>24.16+</strong> или 26.1+ (<a href="https://docs.openclaw.ai/install">docs.openclaw.ai/install</a>). Установщик сам поставит Node, если его нет.</li>
+<li>macOS, Linux или Windows с <strong>WSL2</strong>. В WSL2 должен быть включён systemd: в <code>/etc/wsl.conf</code> добавьте
+  <code>ini
+  [boot]
+  systemd=true</code>
+  и перезапустите WSL командой <code>wsl --shutdown</code> в PowerShell.</li>
+<li>От 2 ГБ свободной памяти (OpenClaw и OmniRoute вместе).</li>
+</ul>
+<h3 id="3a2-установка-openclaw">3A.2 Установка OpenClaw</h3>
+<p>Официальный установщик для macOS, Linux и WSL2:</p>
+<pre><code class="language-bash">curl -fsSL https://openclaw.ai/install.sh | bash -s -- --no-onboard
+</code></pre>
+<p>Если Node уже стоит, можно поставить через npm. На npm 11.16+ нужен флаг <code>--allow-scripts</code>; на npm 11.15 и старше команда та же, но без этого флага. Чтобы получить ровно нашу версию, вместо <code>@latest</code> укажите <code>@2026.10.4</code>:</p>
+<pre><code class="language-bash">npm install -g openclaw@latest --allow-scripts=openclaw
+openclaw --version        # у нас: OpenClaw 2026.10.4
+</code></pre>
+<h3 id="3a3-первичная-настройка-onboarding">3A.3 Первичная настройка (onboarding)</h3>
+<pre><code class="language-bash">openclaw onboard --install-daemon
+</code></pre>
+<p>В мастере выберите:</p>
+<ul>
+<li><strong>Mode:</strong> <code>local</code></li>
+<li><strong>Auth:</strong> OpenRouter API key (<code>openrouter-api-key</code>), вставьте <code>&lt;YOUR_OPENROUTER_KEY&gt;</code></li>
+<li><strong>Gateway bind:</strong> <code>loopback</code>, <strong>auth:</strong> <code>token</code></li>
+<li><strong>Tailscale:</strong> <code>serve</code>, если нужен телефон (сначала сделайте раздел 7.1), иначе <code>off</code></li>
+<li><strong>Channels:</strong> пропустить (мы используем только приложение)</li>
+</ul>
+<p><code>--install-daemon</code> ставит службу. На macOS это LaunchAgent, на Linux и WSL2 — systemd user service <code>openclaw-gateway</code>.</p>
+<p>Проверка:</p>
+<pre><code class="language-bash">openclaw doctor
+openclaw gateway status
+</code></pre>
+<h3 id="3a4-omniroute-на-своём-компьютере">3A.4 OmniRoute на своём компьютере</h3>
+<p>На своём компьютере OmniRoute ставится так же, как на сервере (раздел 6). Отличаются только автозапуск и путь <code>DATA_DIR</code>.</p>
+<ul>
+<li><strong>Linux и WSL2:</strong> используйте юнит <a href="files/omniroute.service">files/omniroute.service</a>, как в разделе 6.4. Встроенная команда <code>omniroute autostart enable</code> тоже создаёт systemd user service, но без наших ограничений памяти.</li>
+<li><strong>macOS:</strong> systemd нет. Запускайте <code>omniroute serve --no-open --daemon --port 20128</code> или настройте свой LaunchAgent. Лимиты памяти вида <code>MemoryMax</code> на macOS недоступны.</li>
+</ul>
+<p>В <code>~/.omniroute/.env</code> поставьте <code>DATA_DIR=$HOME/.omniroute</code> с вашим реальным путём, например <code>/Users/&lt;you&gt;/.omniroute</code>.</p>
+<p>Дальше идите к разделу 4. Пути вида <code>/home/openclaw/...</code> в примерах замените на свой <code>$HOME</code>.</p>
+</div>
+<div class="variant" data-variant="b">
+<p><a id="variant-b"></a></p>
+<h2 id="3b-вариант-b-сервер-digitalocean">3B. Вариант B: сервер DigitalOcean</h2>
+<h3 id="3b1-создание-droplet">3B.1 Создание droplet</h3>
+<p>Документация: <a href="https://docs.digitalocean.com/products/droplets/how-to/create/">docs.digitalocean.com/products/droplets/how-to/create</a>.</p>
+<ol>
+<li><strong>Create → Droplets.</strong></li>
+<li><strong>Region:</strong> любой ближайший.</li>
+<li><strong>Image:</strong> Ubuntu 24.04 LTS x64.</li>
+<li><strong>Size:</strong> Basic → Regular. Минимум $6/мес (1 ГБ RAM, 1 vCPU). <strong>Рекомендуем $12/мес (2 ГБ).</strong> На 1 ГБ всё работает, но свободной памяти остаётся 50–90 МБ, простой ответ идёт до 1,5 минут, а шлюз стартует почти 2 минуты.</li>
+<li><strong>Authentication:</strong> лучше <strong>SSH key</strong> (добавьте свой <code>~/.ssh/id_ed25519.pub</code>). Если выбираете пароль: DigitalOcean не принимает пароль, который кончается цифрой, а поле ограничено 21 символом.</li>
+<li><strong>Create Droplet</strong>, запишите <code>&lt;SERVER_IP&gt;</code>.</li>
+</ol>
+<p>Если начали с $6, перейти на 2 ГБ можно потом: <strong>Power off → Resize → CPU and RAM only</strong>. Диск и все настройки сохраняются (<a href="https://docs.digitalocean.com/products/droplets/how-to/resize/">документация по resize</a>).</p>
+<h3 id="3b2-пользователь-swap-базовые-пакеты">3B.2 Пользователь, swap, базовые пакеты</h3>
+<p>Под root:</p>
+<pre><code class="language-bash">ssh root@&lt;SERVER_IP&gt;
+
+apt-get update &amp;&amp; apt-get -y upgrade
+apt-get install -y curl jq python3 git ca-certificates
+
+# отдельный пользователь, под которым живёт OpenClaw
+adduser openclaw                      # задайте пароль (нужен для sudo)
+usermod -aG sudo openclaw
+mkdir -p /home/openclaw/.ssh &amp;&amp; cp ~/.ssh/authorized_keys /home/openclaw/.ssh/
+chown -R openclaw:openclaw /home/openclaw/.ssh &amp;&amp; chmod 700 /home/openclaw/.ssh &amp;&amp; chmod 600 /home/openclaw/.ssh/authorized_keys
+
+# службы пользователя работают без активного входа
+loginctl enable-linger openclaw
+
+# swap 2 ГБ (обязательно на 1–2 ГБ RAM)
+fallocate -l 2G /swapfile &amp;&amp; chmod 600 /swapfile &amp;&amp; mkswap /swapfile &amp;&amp; swapon /swapfile
+echo '/swapfile none swap sw 0 0' &gt;&gt; /etc/fstab
+swapon --show &amp;&amp; free -m
+</code></pre>
+<h3 id="3b3-node-24-nodesource">3B.3 Node 24 (NodeSource)</h3>
+<p>У нас Node взят из репозитория NodeSource <code>node_24.x</code> (v24.22.0):</p>
+<pre><code class="language-bash">curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
+apt-get install -y nodejs
+node -v          # v24.x
+</code></pre>
+<p>Можно и без этого шага: официальный установщик OpenClaw сам ставит Node 24 LTS на Linux.</p>
+<h3 id="3b4-openclaw">3B.4 OpenClaw</h3>
+<p>У нас OpenClaw стоит глобально в <code>/usr/lib/node_modules/openclaw</code>, бинарник <code>/usr/bin/openclaw</code>:</p>
+<pre><code class="language-bash">npm install -g openclaw@2026.10.4 --allow-scripts=openclaw   # или @latest; на npm ≤ 11.15 без --allow-scripts
+openclaw --version
+</code></pre>
+<p>Дальше всё делаем <strong>под пользователем <code>openclaw</code></strong>:</p>
+<pre><code class="language-bash">ssh openclaw@&lt;SERVER_IP&gt;
+export XDG_RUNTIME_DIR=/run/user/$(id -u)    # нужно для systemctl --user в SSH-сессии
+echo 'export XDG_RUNTIME_DIR=/run/user/$(id -u)' &gt;&gt; ~/.bashrc
+echo 'export PATH=$HOME/.local/bin:$HOME/bin:$PATH' &gt;&gt; ~/.bashrc
+</code></pre>
+<h3 id="3b5-onboarding-и-служба-systemd">3B.5 Onboarding и служба systemd</h3>
+<p>Сначала поставьте Tailscale (раздел 7.1), потом запускайте мастер:</p>
+<pre><code class="language-bash">openclaw onboard --install-daemon
+</code></pre>
+<p>Выбор в мастере тот же, что в 3A.3: <code>local</code>, OpenRouter API key, bind <code>loopback</code>, auth <code>token</code>, Tailscale <code>serve</code>, каналы пропустить.</p>
+<details>
+<summary>Неинтерактивный вариант (флаги из <code>openclaw onboard --help</code>; мы в таком сочетании их не запускали)</summary>
+<pre><code class="language-bash">read -rs OPENROUTER_KEY            # вставьте &lt;YOUR_OPENROUTER_KEY&gt;, Enter
+openclaw onboard --non-interactive --accept-risk --mode local \
+  --auth-choice openrouter-api-key --openrouter-api-key &quot;$OPENROUTER_KEY&quot; \
+  --gateway-bind loopback --gateway-auth token --tailscale serve \
+  --skip-channels --install-daemon
+unset OPENROUTER_KEY
+</code></pre>
+<p>Ключ в аргументах командной строки виден в <code>ps</code> на время работы команды. На общем сервере лучше интерактивный мастер.</p>
+</details>
+<p>Мастер создаст <code>~/.config/systemd/user/openclaw-gateway.service</code>. Наш файл целиком лежит в <a href="files/openclaw-gateway.service">files/openclaw-gateway.service</a>. Ключевые строки:</p>
+<pre><code class="language-ini">ExecStart=/usr/bin/node --max-old-space-size=720 /usr/lib/node_modules/openclaw/dist/index.js gateway --port 18789
+Restart=always
+RestartSec=5
+OOMPolicy=continue
+KillMode=mixed
+</code></pre>
+<p>Если у вас в <code>ExecStart</code> нет <code>--max-old-space-size=720</code>, допишите его на 1 ГБ сервере: так Node не раздует кучу больше, чем есть памяти. Затем:</p>
+<pre><code class="language-bash">systemctl --user daemon-reload &amp;&amp; systemctl --user restart openclaw-gateway
+</code></pre>
+<p>Команда <code>openclaw gateway install --force</code> перезапишет файл, тогда правку придётся повторить.</p>
+<p>Проверка:</p>
+<pre><code class="language-bash">systemctl --user status openclaw-gateway
+openclaw gateway status
+openclaw doctor
+</code></pre>
+<p>На 1 ГБ шлюз поднимается до 2 минут. Пока он стартует, <code>gateway status</code> может показывать ошибку, это нормально.</p>
+</div>
+<hr />
+<h2 id="4-модели-и-запасные-fallbacks">4. Модели и запасные (fallbacks)</h2>
+<h3 id="41-ключи-провайдеров">4.1 Ключи провайдеров</h3>
+<p>OpenRouter уже добавлен на onboarding (профиль <code>openrouter:default</code>). Остальные ключи передаются через stdin, чтобы не попасть в историю:</p>
+<pre><code class="language-bash">read -rs K; printf %s &quot;$K&quot; | openclaw models auth paste-api-key --provider groq;   unset K   # &lt;YOUR_GROQ_KEY&gt;
+read -rs K; printf %s &quot;$K&quot; | openclaw models auth paste-api-key --provider nvidia; unset K   # &lt;YOUR_NVIDIA_KEY&gt;
+read -rs K; printf %s &quot;$K&quot; | openclaw models auth paste-api-key --provider google; unset K   # &lt;YOUR_GEMINI_KEY&gt;
+read -rs K; printf %s &quot;$K&quot; | openclaw models auth paste-api-key --provider zai;    unset K   # &lt;YOUR_ZAI_KEY&gt;
+openclaw models auth list
+</code></pre>
+<p>Должны появиться <code>google:manual</code>, <code>groq:manual</code>, <code>nvidia:manual</code>, <code>zai:manual</code> и <code>openrouter:default</code>. Хранилище ключей общее для всех агентов (<code>~/.openclaw/state/openclaw.sqlite</code>), поэтому <code>researcher</code> и <code>worker</code> видят те же ключи.</p>
+<h3 id="42-почему-json-а-не-openclaw-config-set">4.2 Почему JSON, а не <code>openclaw config set</code></h3>
+<p><code>openclaw models set</code> и <code>openclaw models fallbacks add/clear/list</code> работают, но только для агента по умолчанию. У нас <code>openclaw config set</code> ломался на массивах fallbacks, поэтому модели всех агентов задаём одним JSON-фрагментом и сливаем его в <code>~/.openclaw/openclaw.json</code> через <code>jq</code>.</p>
+<p>Фрагмент для моделей и агентов: <a href="files/openclaw-models-agents.json">files/openclaw-models-agents.json</a>. Главная часть:</p>
+<pre><code class="language-json">{
+  &quot;agents&quot;: {
+    &quot;defaults&quot;: {
+      &quot;models&quot;: {
+        &quot;omniroute/auto&quot;: {},
+        &quot;openrouter/thinkingmachines/inkling:free&quot;: {},
+        &quot;openrouter/thinkingmachines/inkling-small:free&quot;: {},
+        &quot;nvidia/z-ai/glm-5.3&quot;: {},
+        &quot;openrouter/nvidia/nemotron-3.5-super-vl:free&quot;: {},
+        &quot;openrouter/nvidia/nemotron-3-super-120b-a12b:free&quot;: {},
+        &quot;groq/openai/gpt-oss-120b&quot;: {},
+        &quot;google/gemini-3.8-flash&quot;: {},
+        &quot;google/gemma-4-31b-it&quot;: {},
+        &quot;zai/glm-4.7-flash&quot;: {},
+        &quot;openrouter/nvidia/nemotron-3.5-lightning:free&quot;: {},
+        &quot;openrouter/free&quot;: {}
+      },
+      &quot;model&quot;: {
+        &quot;primary&quot;: &quot;omniroute/auto&quot;,
+        &quot;fallbacks&quot;: [
+          &quot;openrouter/thinkingmachines/inkling:free&quot;,
+          &quot;nvidia/z-ai/glm-5.3&quot;,
+          &quot;openrouter/nvidia/nemotron-3.5-super-vl:free&quot;,
+          &quot;openrouter/nvidia/nemotron-3-super-120b-a12b:free&quot;,
+          &quot;groq/openai/gpt-oss-120b&quot;,
+          &quot;google/gemini-3.8-flash&quot;,
+          &quot;google/gemma-4-31b-it&quot;,
+          &quot;zai/glm-4.7-flash&quot;,
+          &quot;openrouter/nvidia/nemotron-3.5-lightning:free&quot;,
+          &quot;openrouter/free&quot;
+        ]
+      }
+    }
+  },
+  &quot;models&quot;: {
+    &quot;providers&quot;: {
+      &quot;omniroute&quot;: {
+        &quot;baseUrl&quot;: &quot;http://127.0.0.1:20128/v1&quot;,
+        &quot;api&quot;: &quot;openai-completions&quot;,
+        &quot;apiKey&quot;: &quot;${OMNIROUTE_API_KEY}&quot;,
+        &quot;models&quot;: [ { &quot;id&quot;: &quot;auto&quot;, &quot;name&quot;: &quot;OmniRoute auto (free providers)&quot; } ]
+      }
+    }
+  }
+}
+</code></pre>
+<p>Пояснения:</p>
+<ul>
+<li><code>agents.defaults.models</code> — это список разрешённых моделей. Модель, которой в нём нет, агент не возьмёт.</li>
+<li><code>${OMNIROUTE_API_KEY}</code> подставляется из <code>~/.openclaw/.env</code> (шаблон: <a href="files/openclaw.env.example">files/openclaw.env.example</a>). Сам ключ в JSON не пишется.</li>
+<li>Порядок запасных: сильные модели идут первыми, <code>openrouter/free</code> стоит последним как «хоть что-нибудь».</li>
+</ul>
+<h3 id="43-как-применить-фрагмент">4.3 Как применить фрагмент</h3>
+<pre><code class="language-bash">cd ~/.openclaw
+cp openclaw.json openclaw.json.bak-$(date +%Y%m%d-%H%M%S)          # резервная копия
+jq -s '.[0] * .[1] * .[2]' openclaw.json \
+   ~/openclaw-models-agents.json ~/openclaw-gateway.json &gt; /tmp/oc.json \
+ &amp;&amp; install -m 600 /tmp/oc.json openclaw.json &amp;&amp; rm /tmp/oc.json
+openclaw config validate          # должно быть: Config valid
+openclaw gateway restart
+openclaw models status
+</code></pre>
+<p><code>jq '*'</code> сливает объекты рекурсивно, а массивы заменяет целиком, поэтому старые fallbacks не дублируются. Фрагменты мы проверили <code>openclaw config validate</code> на копии рабочего конфига.</p>
+<p>Есть и штатный способ: <code>openclaw config patch --file &lt;фрагмент&gt; --dry-run</code>, потом без <code>--dry-run</code>. По справке объекты он тоже сливает, а массивы заменяет, но на fallbacks мы его не проверяли.</p>
+<p>Если OmniRoute ещё не поставлен (раздел 6), сначала примените <a href="files/openclaw-no-omniroute.json">files/openclaw-no-omniroute.json</a>. В нём главная модель Inkling, а у исследователя — Inkling Small.</p>
+<hr />
+<h2 id="5-агенты-и-ограничения-подагентов">5. Агенты и ограничения подагентов</h2>
+<h3 id="51-создание-агентов">5.1 Создание агентов</h3>
+<p>Агент <code>main</code> создаётся на onboarding. Остальных добавьте так:</p>
+<pre><code class="language-bash">openclaw agents add researcher --workspace ~/.openclaw/workspace-researcher --non-interactive
+openclaw agents add worker     --workspace ~/.openclaw/workspace-worker     --non-interactive
+openclaw agents add guest       --workspace ~/.openclaw/workspace-guest       --non-interactive   # только если будет второй пользователь
+openclaw agents list
+</code></pre>
+<p>Затем примените фрагмент из раздела 4.3, если ещё не сделали этого: он же задаёт модели и права агентов. Ниже эта часть фрагмента:</p>
+<pre><code class="language-json">{
+  &quot;agents&quot;: {
+    &quot;defaults&quot;: {
+      &quot;subagents&quot;: {
+        &quot;maxConcurrent&quot;: 2,
+        &quot;maxSpawnDepth&quot;: 1,
+        &quot;maxChildrenPerAgent&quot;: 2,
+        &quot;runTimeoutSeconds&quot;: 600
+      }
+    },
+    &quot;entries&quot;: {
+      &quot;main&quot;:   { &quot;subagents&quot;: { &quot;allowAgents&quot;: [&quot;researcher&quot;, &quot;worker&quot;], &quot;delegationMode&quot;: &quot;prefer&quot; } },
+      &quot;guest&quot;:   { &quot;subagents&quot;: { &quot;allowAgents&quot;: [&quot;researcher&quot;, &quot;worker&quot;], &quot;delegationMode&quot;: &quot;prefer&quot; } },
+      &quot;researcher&quot;: {
+        &quot;model&quot;: { &quot;primary&quot;: &quot;omniroute/auto&quot;,
+                   &quot;fallbacks&quot;: [&quot;openrouter/thinkingmachines/inkling-small:free&quot;, &quot;google/gemini-3.8-flash&quot;,
+                                 &quot;groq/openai/gpt-oss-120b&quot;, &quot;openrouter/free&quot;] },
+        &quot;subagents&quot;: { &quot;allowAgents&quot;: [] }
+      },
+      &quot;worker&quot;: {
+        &quot;model&quot;: { &quot;primary&quot;: &quot;nvidia/z-ai/glm-5.3&quot;, &quot;fallbacks&quot;: [&quot;zai/glm-4.7-flash&quot;, &quot;openrouter/free&quot;] },
+        &quot;subagents&quot;: { &quot;allowAgents&quot;: [] }
+      }
+    }
+  }
+}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Агент</th>
+<th>Роль</th>
+<th>Модели</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>main</code></td>
+<td>Координатор. Сам передаёт работу помощникам (<code>delegationMode: "prefer"</code>)</td>
+<td>общие: <code>omniroute/auto</code> → Inkling → GLM-5.3 → …</td>
+</tr>
+<tr>
+<td><code>guest</code></td>
+<td>Агент второго пользователя, своя память и рабочая папка</td>
+<td>общие, как у <code>main</code></td>
+</tr>
+<tr>
+<td><code>researcher</code></td>
+<td>Поиск и чтение в интернете</td>
+<td><code>omniroute/auto</code> → Inkling Small → Gemini Flash → Groq → <code>openrouter/free</code></td>
+</tr>
+<tr>
+<td><code>worker</code></td>
+<td>Код и команды на сервере</td>
+<td>GLM-5.3 (NVIDIA) → GLM-4.7-Flash (Z.ai) → <code>openrouter/free</code></td>
+</tr>
+</tbody>
+</table>
+<p>Ограничения: одновременно не больше 2 подагентов, без вложенности (помощники не порождают своих), таймаут задачи 10 минут. Больше на маленьком сервере не потянуть ни по памяти, ни по лимитам бесплатных моделей. Документация: <a href="https://docs.openclaw.ai/tools/subagents">Sub-agents</a>, <a href="https://docs.openclaw.ai/concepts/multi-agent">Multi-agent</a>.</p>
+<p>Проверка делегирования:</p>
+<pre><code class="language-bash">openclaw agent --agent main --timeout 600 \
+  --message &quot;Найди через исследователя дату выхода Node 24 LTS и дай ссылку на источник. Коротко.&quot;
+</code></pre>
+<hr />
+<h2 id="6-omniroute-один-умный-вход-на-бесплатных-провайдеров">6. OmniRoute: один «умный» вход на бесплатных провайдеров</h2>
+<p><a href="https://github.com/diegosouzapw/OmniRoute">OmniRoute</a> (MIT) — локальный шлюз с OpenAI-совместимым API. Модель <code>auto</code> у него сама выбирает здорового провайдера и переключается при ошибках.</p>
+<p>Правила, которых мы держимся:</p>
+<ul>
+<li>только бесплатные провайдеры по своим ключам;</li>
+<li>никаких <code>tos: avoid</code>, никаких подписок через OAuth;</li>
+<li><code>openrouter/auto</code> запрещён;</li>
+<li>вход по паролю, порт только на <code>127.0.0.1</code>.</li>
+</ul>
+<h3 id="61-установка-под-пользователем-openclaw">6.1 Установка (под пользователем <code>openclaw</code>)</h3>
+<p>У нас OmniRoute стоит в пользовательский префикс <code>~/.local</code>, не в системный:</p>
+<pre><code class="language-bash">npm install -g --prefix ~/.local omniroute@3.8.51     # или без версии — последняя
+~/.local/bin/omniroute --version                       # 3.8.51
+</code></pre>
+<p>Установка на 1 ГБ идёт около 6 минут. Предупреждения <code>npm warn ERESOLVE</code> безвредны (так сказано в README). Если npm пишет, что install-скрипты не разрешены (<code>allowScripts</code>), и <code>omniroute</code> потом не запускается, переустановите с флагом <code>--allow-scripts=…</code>: точный список пакетов npm печатает в том же предупреждении. У нас OmniRoute работает и без него.</p>
+<p>Docker тоже возможен (<code>docker run … -p 127.0.0.1:20128:20128 …</code>, см. README), но на 1 ГБ мы его не ставили.</p>
+<h3 id="62-файл-окружения-omnirouteenv">6.2 Файл окружения <code>~/.omniroute/.env</code></h3>
+<p>Шаблон: <a href="files/omniroute.env.example">files/omniroute.env.example</a>.</p>
+<pre><code class="language-bash">mkdir -p ~/.omniroute &amp;&amp; chmod 700 ~/.omniroute
+cat &gt; ~/.omniroute/.env &lt;&lt;EOT
+PORT=20128
+OMNIROUTE_SERVER_HOST=127.0.0.1
+DATA_DIR=$HOME/.omniroute
+INITIAL_PASSWORD=$(openssl rand -base64 18)
+JWT_SECRET=$(openssl rand -base64 48)
+API_KEY_SECRET=$(openssl rand -hex 32)
+STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
+REQUIRE_API_KEY=true
+OMNIROUTE_MEMORY_MB=448
+EOT
+chmod 600 ~/.omniroute/.env
+grep INITIAL_PASSWORD ~/.omniroute/.env    # запишите пароль дашборда в менеджер паролей
+</code></pre>
+<ul>
+<li><code>OMNIROUTE_SERVER_HOST=127.0.0.1</code> — слушать только локально.</li>
+<li><code>REQUIRE_API_KEY=true</code> — без ключа API не пускает.</li>
+<li><code>OMNIROUTE_MEMORY_MB=448</code> — потолок кучи Node. По <code>.env.example</code> его надо задавать явно, если память ограничена.</li>
+</ul>
+<p>При запуске OmniRoute может предупредить, что переменные из <code>.env</code> внутри пакета игнорируются. Это нормально: побеждает ваш <code>~/.omniroute/.env</code>.</p>
+<h3 id="63-служба-systemd-с-лимитами-памяти">6.3 Служба systemd с лимитами памяти</h3>
+<p>Файл <code>~/.config/systemd/user/omniroute.service</code> (копия: <a href="files/omniroute.service">files/omniroute.service</a>):</p>
+<pre><code class="language-ini">[Unit]
+Description=OmniRoute AI gateway (loopback only)
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/.omniroute
+EnvironmentFile=%h/.omniroute/.env
+Environment=NODE_ENV=production
+ExecStart=%h/.local/bin/omniroute serve --no-open --no-tray --ready-timeout 240000 --port 20128
+Restart=on-failure
+RestartSec=20
+OOMScoreAdjust=900
+MemoryHigh=450M
+MemoryMax=650M
+MemorySwapMax=600M
+
+[Install]
+WantedBy=default.target
+</code></pre>
+<pre><code class="language-bash">systemctl --user daemon-reload
+systemctl --user enable --now omniroute
+systemctl --user status omniroute
+</code></pre>
+<ul>
+<li><code>OOMScoreAdjust=900</code>: если память кончится, ядро первым убьёт OmniRoute, а не шлюз OpenClaw. OpenClaw тогда просто уйдёт на запасные модели.</li>
+<li><code>MemoryMax=650M</code> ограничивает саму службу.</li>
+<li><code>--ready-timeout 240000</code>: на медленном сервере старт занимает минуты.</li>
+</ul>
+<h3 id="64-дашборд-пароль-и-ключ-для-openclaw">6.4 Дашборд, пароль и ключ для OpenClaw</h3>
+<p>Дашборд открыт только на сервере. С вашего компьютера к нему ходят через SSH-туннель:</p>
+<pre><code class="language-bash">ssh -L 20128:127.0.0.1:20128 openclaw@&lt;SERVER_IP&gt;
+# в браузере: http://localhost:20128  (пароль — INITIAL_PASSWORD; смените в Settings → Security)
+</code></pre>
+<ol>
+<li><strong>Создайте API-ключ</strong> для OpenClaw (в README он берётся в Dashboard → Endpoints / API Keys). Запишите его:
+   <code>bash
+   read -rs K
+   echo "OMNIROUTE_API_KEY=$K" &gt;&gt; ~/.openclaw/.env &amp;&amp; chmod 600 ~/.openclaw/.env
+   echo "OMNIROUTE_API_KEY=$K" &gt;&gt; ~/.omniroute/.env     # чтобы работали CLI и тест-скрипт
+   unset K</code></li>
+<li><strong>Настройки фильтров</strong>: вход по паролю, скрыть платные модели, исключить <code>tos: avoid</code>, запретить <code>openrouter/auto</code>. Тело запроса: <a href="files/omniroute-settings.json">files/omniroute-settings.json</a>.
+   <code>json
+   {
+     "requireLogin": true,
+     "hidePaidModels": true,
+     "excludeTosAvoid": true,
+     "modelVisibilityDenylist": ["openrouter/auto", "openrouter/stealth/ox-alpha"]
+   }</code>
+   Применить можно тремя способами:
+   - <strong>CLI:</strong> <code>omniroute api settings patch-api-settings --body @omniroute-settings.json</code>. Команда есть в <code>omniroute api settings --help</code>.
+   - <strong>Наш способ:</strong> через вспомогательный скрипт <a href="files/omniroute-mgmt.mjs">files/omniroute-mgmt.mjs</a>, который ходит в локальный API с CLI-токеном OmniRoute. Скопируйте его в <code>~/.omniroute/mgmt.mjs</code> и выполните:
+     <code>bash
+     node ~/.omniroute/mgmt.mjs PATCH /api/settings "$(cat omniroute-settings.json)"
+     node ~/.omniroute/mgmt.mjs GET /api/settings | grep -o '"excludeTosAvoid":[a-z]*'</code>
+   - <strong>Дашборд:</strong> раздел Settings.</li>
+</ol>
+<p>Все эти ключи есть в схеме настроек OmniRoute (<code>settingsSchemas.ts</code>).</p>
+<h3 id="65-провайдеры-только-бесплатные-по-ключам">6.5 Провайдеры: только бесплатные, по ключам</h3>
+<pre><code class="language-bash">export PATH=$HOME/.local/bin:$PATH
+read -rs GEMINI_KEY; export GEMINI_KEY
+omniroute providers add gemini --name gemini-free --credential-env GEMINI_KEY
+read -rs GROQ_KEY;   export GROQ_KEY
+omniroute providers add groq   --name groq-free   --credential-env GROQ_KEY
+read -rs NVIDIA_KEY; export NVIDIA_KEY
+omniroute providers add nvidia --name nvidia-free --credential-env NVIDIA_KEY
+unset GEMINI_KEY GROQ_KEY NVIDIA_KEY
+
+omniroute providers list
+omniroute providers test-all
+</code></pre>
+<p>Что у нас в итоге:</p>
+<ul>
+<li><strong>Активны:</strong> <code>gemini-free</code>, <code>groq-free</code>, <code>nvidia-free</code>.</li>
+<li><strong>Добавлены, но выключены:</strong> <code>sambanova-free</code> (кредиты кончились, требует карту) и <code>mistral-free</code> (постоянные 429). Выключить можно так: <code>omniroute providers edit &lt;имя&gt; --inactive</code>.</li>
+<li><strong>OpenRouter в OmniRoute не подключён.</strong> OmniRoute считает бесплатным платный <code>openrouter/auto</code> и мог бы тратить ваши кредиты. Бесплатные модели OpenRouter OpenClaw вызывает напрямую, мимо OmniRoute.</li>
+<li><strong>Не подключайте</strong> Kiro, OpenCode Free (они помечены <code>tos: avoid</code>) и любые OAuth-подписки (<code>omniroute oauth …</code>, <code>providers add --oauth</code>).</li>
+</ul>
+<p>Тест прямо через API, обычный ответ и вызов инструмента. Скрипт: <a href="files/omniroute-test-models.mjs">files/omniroute-test-models.mjs</a>. Он читает <code>OMNIROUTE_API_KEY</code> из <code>~/.openclaw/.env</code>.</p>
+<pre><code class="language-bash">node ~/.omniroute/test-models.mjs auto T:auto
+</code></pre>
+<hr />
+<h2 id="7-tailscale-serve-и-приложение-на-iphone">7. Tailscale Serve и приложение на iPhone</h2>
+<h3 id="71-tailscale-на-сервере-или-компьютере">7.1 Tailscale на сервере (или компьютере)</h3>
+<pre><code class="language-bash">curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up                       # откройте ссылку и войдите в свой аккаунт Tailscale
+sudo tailscale set --operator=$USER     # чтобы шлюз мог управлять Serve без sudo (рекомендация docs.openclaw.ai)
+tailscale status
+</code></pre>
+<p>В <a href="https://login.tailscale.com/admin/dns">админке Tailscale</a> включите <strong>MagicDNS</strong> и <strong>HTTPS Certificates</strong>. Без HTTPS Serve не работает (<a href="https://tailscale.com/kb/1312/serve">kb/1312/serve</a>). Если Serve на tailnet не включён, при старте шлюз напишет предупреждение со ссылкой для включения. Откройте её и затем выполните <code>openclaw gateway restart</code>.</p>
+<p>В конфиге OpenClaw (уже есть во фрагменте <a href="files/openclaw-gateway.json">files/openclaw-gateway.json</a>):</p>
+<pre><code class="language-json">{ &quot;gateway&quot;: { &quot;bind&quot;: &quot;loopback&quot;, &quot;port&quot;: 18789, &quot;auth&quot;: { &quot;mode&quot;: &quot;token&quot; }, &quot;tailscale&quot;: { &quot;mode&quot;: &quot;serve&quot; } } }
+</code></pre>
+<p>Шлюз сам поднимает Serve как «foreground claim», пока он запущен (<a href="https://docs.openclaw.ai/gateway/tailscale">docs.openclaw.ai/gateway/tailscale</a>). Поэтому <code>tailscale serve status</code> может написать «No serve config»; смотрите <code>tailscale serve status --json</code>. Адрес шлюза получится такой: <code>wss://&lt;TAILNET-HOST&gt;.&lt;TAILNET&gt;.ts.net</code>.</p>
+<h3 id="72-подключение-iphone">7.2 Подключение iPhone</h3>
+<ol>
+<li>Поставьте на iPhone <strong>Tailscale</strong> и войдите <strong>в тот же аккаунт</strong>, затем включите VPN. Адрес <code>*.ts.net</code> доступен только внутри вашей сети Tailscale, поэтому Tailscale нужен даже при наличии приложения OpenClaw.</li>
+<li>Поставьте приложение <strong>OpenClaw</strong> из App Store.</li>
+<li>На сервере выполните:
+   <code>bash
+   openclaw qr                 # QR-код в терминале
+   openclaw qr --json          # или setupCode в JSON, если удобнее вставить текстом</code></li>
+<li>В приложении отсканируйте QR или вставьте setup code. Официальное приложение подключается само. Если запрос завис:
+   <code>bash
+   openclaw devices list
+   openclaw devices approve &lt;requestId&gt;</code></li>
+</ol>
+<p>Setup code короткоживущий и одноразовый. Не пересылайте его в чатах. Документация: <a href="https://docs.openclaw.ai/cli/qr">docs.openclaw.ai/cli/qr</a>.</p>
+<hr />
+<h2 id="8-делегирование-задач-от-других-ботов">8. Делегирование задач от других ботов</h2>
+<p>Идея в том, чтобы дорогой ИИ-ассистент (бот) отдавал «грязную» работу (поиск, черновики, скрипты) OpenClaw на бесплатных моделях, а потом выборочно проверял результат.</p>
+<h3 id="81-ключ-владельца">8.1 Ключ владельца</h3>
+<p>На машине, где живут ваши боты (например, отдельная Linux-машина):</p>
+<pre><code class="language-bash">ssh-keygen -t ed25519 -f ~/.ssh/oc_owner -N &quot;&quot; -C oc-owner
+ssh-copy-id -i ~/.ssh/oc_owner.pub openclaw@&lt;SERVER_IP&gt;      # или допишите .pub в ~/.ssh/authorized_keys сервера
+ssh -i ~/.ssh/oc_owner openclaw@&lt;SERVER_IP&gt; 'openclaw --version'
+</code></pre>
+<p>Скрипты ожидают ключ именно по пути <code>~/.ssh/oc_owner</code>.</p>
+<h3 id="82-oc-delegate-отдать-задачу-и-получить-ответ">8.2 <code>oc-delegate</code>: отдать задачу и получить ответ</h3>
+<p>Исходник: <a href="files/oc-delegate">files/oc-delegate</a>. Установка на машину бота:</p>
+<pre><code class="language-bash">sed -i 's/&lt;SERVER_IP&gt;/203.0.113.10/' oc-delegate oc-mail   # ваш адрес вместо примера (или export OC_HOST=openclaw@&lt;адрес&gt;)
+sudo install -m 755 oc-delegate oc-mail /usr/local/bin/
+</code></pre>
+<p>На сервер положите извлекатель ответа <a href="files/ocx.py">files/ocx.py</a> в <code>~/bin/ocx.py</code>. Его использует <code>oc-gate</code>; <code>oc-delegate</code> владельца передаёт такой же код сам.</p>
+<p>Использование:</p>
+<pre><code class="language-bash">oc-delegate &quot;Reply with exactly: ok&quot;                                  # агент main
+oc-delegate --agent researcher --timeout 600 &quot;Найди … дай 3 ссылки&quot;   # исследователь
+oc-delegate --agent worker &quot;Напиши bash-скрипт, который …&quot;           # исполнитель
+J=$(oc-delegate --bg --agent researcher &quot;долгая задача&quot;)              # в фоне → id задачи
+oc-delegate --result &quot;$J&quot; --wait                                      # забрать результат
+oc-delegate --jobs                                                    # список задач
+</code></pre>
+<p>Коды выхода: <code>0</code> — готово, <code>75</code> — ещё выполняется, остальное — ошибка (текст в stderr). Внутри скрипт вызывает на сервере <code>openclaw agent --agent … --session-key … --timeout … --json --message-file …</code> и вытаскивает из JSON только текст ответа. Задачи и ответы лежат в <code>~/oc-jobs/</code> на сервере.</p>
+<p>Каждый вызов занимает от 25 секунд до 3 минут. Одновременно идёт не больше 2 задач.</p>
+<h3 id="83-навык-skill-для-ботов">8.3 Навык (skill) для ботов</h3>
+<p>Правила, когда делегировать и как проверять, лежат в <a href="files/SKILL-owner.md">files/SKILL-owner.md</a>. Сохраните его как навык <code>openclaw-delegate</code> у каждого своего бота. Кратко:</p>
+<ul>
+<li><strong>Отдаём:</strong> самостоятельные задачи, где можно подождать (поиск с источниками, черновики, перевод, маленькие скрипты).</li>
+<li><strong>Не отдаём:</strong> всё, что требует ваших аккаунтов, отправки сообщений, денег, удаления данных, секретов, а также срочное и крошечное.</li>
+<li><strong>Проверяем:</strong> 1–2 ключевых факта, код запускаем, текст вычитываем. Если ответ плохой, повторяем один раз, иначе делаем сами.</li>
+</ul>
+<h3 id="84-второй-пользователь-ключ-с-forced-command-oc-gate">8.4 Второй пользователь: ключ с forced command (<code>oc-gate</code>)</h3>
+<p>Второму пользователю (его агент на сервере — <code>guest</code>) владелец даёт SSH-ключ, который <strong>не открывает shell</strong>. Он запускает только скрипт <a href="files/oc-gate">files/oc-gate</a>. Тот принимает команды <code>run</code>, <code>result</code>, <code>jobs</code> (задачи агентам <code>guest</code>, <code>researcher</code>, <code>worker</code>) и <code>mail</code>, всё остальное отвергает. Агент <code>main</code> владельца ему недоступен.</p>
+<p>На сервере:</p>
+<pre><code class="language-bash">mkdir -p ~/bin
+install -m 755 oc-gate ~/bin/oc-gate
+install -m 755 ocmail.py ~/bin/ocmail.py
+install -m 644 ocx.py ~/bin/ocx.py
+</code></pre>
+<p>Ключ для второго пользователя генерируйте у себя, не на сервере:</p>
+<pre><code class="language-bash">ssh-keygen -t ed25519 -f oc_guest -N &quot;&quot; -C oc-guest
+</code></pre>
+<p>Добавьте в <code>~/.ssh/authorized_keys</code> на сервере <strong>одну строку</strong> (подставьте содержимое <code>oc_guest.pub</code>):</p>
+<pre><code class="language-text">command=&quot;/home/openclaw/bin/oc-gate&quot;,no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty ssh-ed25519 &lt;PUBLIC_KEY_OF_SECOND_USER&gt; oc-guest
+</code></pre>
+<p>Отпечаток ключа сервера для пакета:</p>
+<pre><code class="language-bash">ssh-keyscan -t ed25519 &lt;SERVER_IP&gt; &gt; known_hosts
+ssh-keygen -lf known_hosts                 # SHA256:… → впишите в SETUP-guest.md вместо &lt;HOST_KEY_FINGERPRINT&gt;
+</code></pre>
+<p>Пакет для бота второго пользователя:</p>
+<ul>
+<li><code>oc_guest</code> (приватный ключ);</li>
+<li><code>oc_guest.pub</code>;</li>
+<li><code>known_hosts</code>;</li>
+<li><a href="files/oc-delegate-guest">files/oc-delegate-guest</a> → переименовать в <code>oc-delegate</code>;</li>
+<li><a href="files/oc-mail-guest">files/oc-mail-guest</a> → переименовать в <code>oc-mail</code>;</li>
+<li><a href="files/SKILL-guest.md">files/SKILL-guest.md</a> → <code>SKILL.md</code>;</li>
+<li><a href="files/SETUP-guest.md">files/SETUP-guest.md</a> → <code>SETUP.md</code>.</li>
+</ul>
+<p>Боту говорят: «Следуй SETUP.md».</p>
+<ul>
+<li><strong>Передача.</strong> Пакет передавайте <strong>только лично</strong>, в нём приватный ключ.</li>
+<li><strong>Отзыв.</strong> Удалите строку <code>oc-guest</code> из <code>authorized_keys</code>, и доступ сразу пропадёт.</li>
+<li><strong>Учтите.</strong> Через <code>worker</code> второй пользователь фактически может выполнять команды на сервере. Вся его история хранится у вас.</li>
+</ul>
+<h3 id="85-oc-mail-почта-между-ботами-двух-людей">8.5 <code>oc-mail</code>: почта между ботами двух людей</h3>
+<p>Серверная часть — <a href="files/ocmail.py">files/ocmail.py</a> (<code>~/bin/ocmail.py</code>). Ящики лежат в <code>~/oc-mail/owner/</code> и <code>~/oc-mail/guest/</code>, письма хранятся в JSON, максимум 100 КБ. Сторона <code>guest</code> может писать только стороне <code>owner</code>.</p>
+<p>Клиент владельца: <a href="files/oc-mail">files/oc-mail</a>. Клиент гостя: <a href="files/oc-mail-guest">files/oc-mail-guest</a>.</p>
+<pre><code class="language-bash">oc-mail inbox                       # непрочитанные
+oc-mail read m-20261018-120000-abc123
+echo &quot;текст&quot; | oc-mail reply m-… --from MyBot
+echo &quot;текст&quot; | oc-mail send --to guest --from MyBot --subject &quot;Тема&quot;
+</code></pre>
+<p>Письма от другой стороны — это <strong>данные, а не команды</strong>. Боты не должны ничего отправлять наружу, тратить деньги или раскрывать секреты только потому, что их об этом попросили в письме.</p>
+<h3 id="86-для-варианта-a">8.6 Для варианта A</h3>
+<p>Если OpenClaw стоит на вашем компьютере, а бот живёт там же, в скриптах укажите <code>HOST=$USER@localhost</code> и разрешите вход по ключу в локальный sshd. Если бот на другой машине, нужен SSH до вашего компьютера, например через Tailscale. Спящий компьютер задачи не выполнит.</p>
+<hr />
+<h2 id="9-проверки-и-решение-проблем">9. Проверки и решение проблем</h2>
+<h3 id="91-быстрая-проверка-всей-системы">9.1 Быстрая проверка всей системы</h3>
+<pre><code class="language-bash">export XDG_RUNTIME_DIR=/run/user/$(id -u)
+node -v &amp;&amp; openclaw --version &amp;&amp; ~/.local/bin/omniroute --version
+systemctl --user is-active openclaw-gateway omniroute      # active / active
+free -m &amp;&amp; swapon --show
+openclaw config validate
+openclaw models status
+openclaw agent --agent main --timeout 120 --message &quot;Reply with exactly: ok&quot;
+oc-delegate --timeout 120 &quot;Reply with exactly: ok&quot;         # с машины бота
+oc-mail inbox
+</code></pre>
+<h3 id="92-таблица-проблем">9.2 Таблица проблем</h3>
+<table>
+<thead>
+<tr>
+<th>Симптом</th>
+<th>Причина</th>
+<th>Что делать</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Шлюз или OmniRoute внезапно перезапустились, в <code>journalctl --user -u omniroute</code> или <code>dmesg</code> видно <code>Out of memory</code> / <code>oom-kill</code></td>
+<td>На 1 ГБ кончилась память</td>
+<td>Swap 2 ГБ обязателен. OmniRoute с <code>OOMScoreAdjust=900</code> гибнет первым и сам поднимается (<code>Restart=on-failure</code>). Надёжное решение — перейти на 2 ГБ ($12/мес, раздел 3B.1).</td>
+</tr>
+<tr>
+<td><code>413</code> / «Request too large» от Groq</td>
+<td>Бесплатный лимит Groq — 8 000 токенов в минуту, а системный промпт агента больше. На 413 OpenClaw <strong>не</strong> переключается на запасную модель</td>
+<td>Не ставьте Groq первым ни у одного агента. У нас он стоит только в середине списка запасных.</td>
+</tr>
+<tr>
+<td><code>429</code> / «Rate limit exceeded»</td>
+<td>Лимиты: OpenRouter — 20 в минуту и 1000 в день, Mistral — постоянно</td>
+<td>Подождать. Сократить параллельность (<code>maxConcurrent: 2</code>). Убрать вечно занятого провайдера (мы убрали Mistral).</td>
+</tr>
+<tr>
+<td><code>402</code> от OpenRouter</td>
+<td>Вызвана платная модель или отрицательный баланс</td>
+<td>Проверьте, что в списках нет <code>openrouter/auto</code> и моделей без <code>:free</code> (кроме <code>openrouter/free</code>).</td>
+</tr>
+<tr>
+<td>Ответ «ok» идёт 1–2 минуты, шлюз стартует ~2 минуты</td>
+<td>Сервер свопит (1 ГБ)</td>
+<td>Норма для 1 ГБ. Ускоряет переход на 2 ГБ. Смотрите <code>journalctl --user -u openclaw-gateway -f</code>.</td>
+</tr>
+<tr>
+<td>Модель долго молчит (Nemotron, Nemotron Ultra)</td>
+<td>Перегружен бесплатный пул</td>
+<td>Её место в запасных. Главную держите на <code>omniroute/auto</code> и Inkling.</td>
+</tr>
+<tr>
+<td>NVIDIA перестала отвечать</td>
+<td>Кончились пробные кредиты</td>
+<td>Сработают запасные. Уберите <code>nvidia/*</code> из списков и <code>nvidia-free</code> в OmniRoute.</td>
+</tr>
+<tr>
+<td>Телефон не подключается</td>
+<td>Tailscale на телефоне выключен или другой аккаунт; Serve не включён на tailnet; HTTPS выключен</td>
+<td>Включите VPN Tailscale на iPhone, включите HTTPS и Serve в админке, выполните <code>openclaw gateway restart</code>, затем заново <code>openclaw qr</code>.</td>
+</tr>
+<tr>
+<td><code>systemctl --user</code> в SSH пишет «Failed to connect to bus»</td>
+<td>Не задан <code>XDG_RUNTIME_DIR</code></td>
+<td><code>export XDG_RUNTIME_DIR=/run/user/$(id -u)</code>; проверьте, что включён linger (<code>loginctl show-user openclaw</code> → <code>Linger=yes</code>).</td>
+</tr>
+<tr>
+<td><code>oc-delegate</code>: <code>ssh: command not found</code> (или раньше <code>sshpass: command not found</code>)</td>
+<td>На машине бота пропал SSH-клиент</td>
+<td><code>sudo apt-get install -y openssh-client</code>. Наши скрипты пробуют поставить его сами и ходят по ключу, без <code>sshpass</code>.</td>
+</tr>
+<tr>
+<td><code>models scan</code> поставил крошечную модель по умолчанию</td>
+<td>Скан выбирает по своим критериям</td>
+<td>Задайте модели фрагментом из раздела 4.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="93-откат">9.3 Откат</h3>
+<pre><code class="language-bash">cd ~/.openclaw
+ls -t openclaw.json.bak* | head          # ваши резервные копии
+cp openclaw.json.bak-&lt;дата&gt; openclaw.json &amp;&amp; chmod 600 openclaw.json
+openclaw config validate &amp;&amp; openclaw gateway restart
+</code></pre>
+<p>Отключить OmniRoute полностью:</p>
+<pre><code class="language-bash">systemctl --user disable --now omniroute
+# главная модель снова Inkling:
+jq -s '.[0] * .[1]' ~/.openclaw/openclaw.json ~/openclaw-no-omniroute.json &gt; /tmp/oc.json \
+  &amp;&amp; install -m 600 /tmp/oc.json ~/.openclaw/openclaw.json &amp;&amp; rm /tmp/oc.json
+openclaw config validate &amp;&amp; openclaw gateway restart
+</code></pre>
+<p>Резервная копия всего состояния: <code>openclaw backup --help</code> (создание и проверка архивов).</p>
+<hr />
+<h2 id="10-безопасность">10. Безопасность</h2>
+<ul>
+<li><strong>Только бесплатное.</strong> Никаких платных моделей в списках. <code>openrouter/auto</code> запрещён и в OpenClaw, и в OmniRoute (<code>modelVisibilityDenylist</code>, <code>hidePaidModels</code>).</li>
+<li><strong>Ничего не торчит наружу.</strong> Шлюз OpenClaw (<code>bind: loopback</code>) и OmniRoute (<code>127.0.0.1:20128</code>) слушают только локально. Телефон ходит через Tailscale Serve (только внутри вашей сети Tailscale), а не Funnel. В интернет открыт только SSH.</li>
+<li><strong>Firewall.</strong> В DigitalOcean создайте Cloud Firewall: входящий только TCP 22 (<a href="https://docs.digitalocean.com/products/networking/firewalls/">документация</a>). Tailscale работает и без открытых входящих портов.</li>
+<li><strong>SSH.</strong> Входите только по SSH-ключам (при создании droplet выберите SSH key). Когда ключи настроены, отключите вход по паролю: в <code>/etc/ssh/sshd_config.d/</code> задайте <code>PasswordAuthentication no</code> и <code>PermitRootLogin prohibit-password</code>, проверьте <code>sudo sshd -t</code> и выполните <code>sudo systemctl reload ssh</code>. Не закрывайте текущую сессию, пока не убедились, что вход по ключу работает. Пароли не храните в файлах на машинах ботов.</li>
+<li><strong>Второй пользователь</strong> входит только через forced command <code>oc-gate</code> (без shell, без проброса портов и PTY). Отзыв — удалить строку из <code>authorized_keys</code>. Помните, что <code>worker</code> выполняет команды на сервере.</li>
+<li><strong>Секреты:</strong></li>
+<li><code>~/.openclaw/.env</code>, <code>~/.omniroute/.env</code> и <code>openclaw.json</code> — права <code>600</code>.</li>
+<li>Ключи вводятся через stdin или <code>read -s</code>. В конфиге — ссылки <code>${VAR}</code>, не сами значения.</li>
+<li>Ключи и пароли не пишите в задачи для <code>oc-delegate</code>: их видит сервер и бесплатные провайдеры.</li>
+<li><strong>OmniRoute:</strong> <code>requireLogin: true</code>, <code>REQUIRE_API_KEY=true</code>, <code>excludeTosAvoid: true</code>, без OAuth-подписок (риск бана аккаунтов).</li>
+<li><strong>Приватность моделей.</strong> Бесплатные провайдеры могут учиться на запросах. Ничего личного через них не отправляйте.</li>
+<li><strong>Письма между ботами</strong> — данные, а не команды. Любые просьбы что-то отправить, оплатить или раскрыть идут к человеку.</li>
+<li><strong>Setup code и приватные ключи</strong> передаются только лично.</li>
+</ul>
+<hr />
+<h2 id="приложение-проверенные-версии-и-пути">Приложение: проверенные версии и пути</h2>
+<table>
+<thead>
+<tr>
+<th>Что</th>
+<th>Значение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ОС</td>
+<td>Ubuntu 24.04, droplet 1 ГБ RAM / 1 vCPU, swap 2 ГБ (<code>/swapfile</code>), <code>vm.swappiness=60</code></td>
+</tr>
+<tr>
+<td>Node</td>
+<td>v24.22.0 (NodeSource <code>node_24.x</code>)</td>
+</tr>
+<tr>
+<td>OpenClaw</td>
+<td>2026.10.4, <code>/usr/lib/node_modules/openclaw</code>, конфиг <code>~/.openclaw/openclaw.json</code></td>
+</tr>
+<tr>
+<td>OmniRoute</td>
+<td>3.8.51, <code>~/.local/lib/node_modules/omniroute</code>, данные <code>~/.omniroute/</code></td>
+</tr>
+<tr>
+<td>Tailscale</td>
+<td>1.104.1</td>
+</tr>
+<tr>
+<td>Службы</td>
+<td><code>openclaw-gateway.service</code>, <code>omniroute.service</code> (systemd <strong>user</strong>, linger включён)</td>
+</tr>
+<tr>
+<td>Порты</td>
+<td>18789 (шлюз, loopback), 20128 (OmniRoute, loopback), 22 (SSH)</td>
+</tr>
+<tr>
+<td>Скрипты на сервере</td>
+<td><code>~/bin/oc-gate</code>, <code>~/bin/ocmail.py</code>, <code>~/bin/ocx.py</code>, <code>~/.omniroute/mgmt.mjs</code>, <code>~/.omniroute/test-models.mjs</code></td>
+</tr>
+<tr>
+<td>Скрипты у ботов</td>
+<td><code>oc-delegate</code>, <code>oc-mail</code></td>
+</tr>
+</tbody>
+</table>
+<p>Список всех файлов: <a href="files/index.html">files/</a>.</p></main></div></body></html>

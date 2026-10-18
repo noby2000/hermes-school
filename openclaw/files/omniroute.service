@@ -1,0 +1,19 @@
+[Unit]
+Description=OmniRoute AI gateway (loopback only)
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/.omniroute
+EnvironmentFile=%h/.omniroute/.env
+Environment=NODE_ENV=production
+ExecStart=%h/.local/bin/omniroute serve --no-open --no-tray --ready-timeout 240000 --port 20128
+Restart=on-failure
+RestartSec=20
+OOMScoreAdjust=900
+MemoryHigh=450M
+MemoryMax=650M
+MemorySwapMax=600M
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,28 @@
+{
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "openrouter/thinkingmachines/inkling:free",
+        "fallbacks": [
+          "nvidia/z-ai/glm-5.3",
+          "openrouter/nvidia/nemotron-3.5-super-vl:free",
+          "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
+          "groq/openai/gpt-oss-120b",
+          "google/gemini-3.8-flash",
+          "google/gemma-4-31b-it",
+          "zai/glm-4.7-flash",
+          "openrouter/nvidia/nemotron-3.5-lightning:free",
+          "openrouter/free"
+        ]
+      }
+    },
+    "entries": {
+      "researcher": {
+        "model": {
+          "primary": "openrouter/thinkingmachines/inkling-small:free",
+          "fallbacks": ["google/gemini-3.8-flash", "groq/openai/gpt-oss-120b", "openrouter/free"]
+        }
+      }
+    }
+  }
+}
