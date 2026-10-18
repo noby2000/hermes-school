@@ -30,7 +30,7 @@
  │    └─ агент worker      ── код и команды на сервере     ◄────┘ (макс. 2)     │
  │                                                                              │
  │  OmniRoute (127.0.0.1:20128) ── модель "auto": Gemini / Groq / NVIDIA        │
- │  Прямые провайдеры (запасные): OpenRouter :free, NVIDIA, Google, Groq, Z.ai  │
+ │  Запасные напрямую: OpenRouter :free, NVIDIA, Google, Groq, Z.ai, Gonka      │
  │                                                                              │
  │  ~/bin/oc-gate (вход второго пользователя), ~/bin/ocmail.py (почта ботов)    │
  └──────────────────────────────────────────────────────────────────────────────┘
@@ -56,6 +56,7 @@
 | **Google Gemini (AI Studio)** | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) | `gemini-3.8-flash`, `gemma-4-31b-it` на бесплатном уровне. Конкретные лимиты Google показывает в AI Studio, публичной таблицы нет ([rate limits](https://ai.google.dev/gemini-api/docs/rate-limits)). | Карта не нужна. Условия бесплатного уровня смотрите в Terms Gemini API. |
 | **NVIDIA NIM** | [build.nvidia.com](https://build.nvidia.com) → API key (`nvapi-…`) | `z-ai/glm-5.3` и другие модели | Это **пробные кредиты**, а не вечный бесплатный доступ. Когда кончатся, модель отвалится, и сработают запасные. |
 | **Z.ai** | [z.ai](https://z.ai) → API keys; цены: [docs.z.ai/guides/overview/pricing](https://docs.z.ai/guides/overview/pricing) | `glm-4.7-flash` и `glm-4.5-flash` бесплатны (Free по всем статьям). | Остальные модели GLM платные. |
+| **Gonka** (через брокер Gonka Broker) | [gonkabroker.com/free-llm-api](https://gonkabroker.com/free-llm-api/), ключ вида `gnk-prx-…`; о сети: [gonka.ai](https://gonka.ai) | Не меньше 1 млн токенов в месяц, без карты. Грант обновляется 1-го числа и не переносится на следующий месяц. Модели `zai-org/GLM-5.3-Flash`, `MiniMaxAI/MiniMax-M2.7`, `deepseek-ai/DeepSeek-V4-Flash-0731` (и эмбеддинги `BAAI/bge-m3`). API совместим с OpenAI: `https://proxy.gonkabroker.com/v1`. | Нужна проверка телефона по SMS, VoIP-номера не принимают. На бесплатном уровне есть ограничение частоты запросов. Gonka — децентрализованная сеть GPU-инференса. |
 | **Tailscale** | [login.tailscale.com/start](https://login.tailscale.com/start) | Бесплатный личный тариф | Нужен для доступа с телефона. |
 | **DigitalOcean** (только вариант B) | [cloud.digitalocean.com](https://cloud.digitalocean.com) | — | Droplet: $6/мес (1 ГБ) или $12/мес (2 ГБ, рекомендуем). |
 
@@ -281,6 +282,13 @@ read -rs K; printf %s "$K" | openclaw models auth paste-api-key --provider zai; 
 openclaw models auth list
 ```
 
+Gonka подключается как свой (custom) провайдер, поэтому его ключ хранится не в профиле, а в `~/.openclaw/.env`. В конфиге на него ссылается `${GONKA_API_KEY}` (раздел 4.2):
+
+```bash
+read -rs K; echo "GONKA_API_KEY=$K" >> ~/.openclaw/.env; unset K     # <YOUR_GONKA_KEY> (gnk-prx-…)
+chmod 600 ~/.openclaw/.env
+```
+
 Должны появиться `google:manual`, `groq:manual`, `nvidia:manual`, `zai:manual` и `openrouter:default`. Хранилище ключей общее для всех агентов (`~/.openclaw/state/openclaw.sqlite`), поэтому `researcher` и `worker` видят те же ключи.
 
 ### 4.2 Почему JSON, а не `openclaw config set`
@@ -305,6 +313,8 @@ openclaw models auth list
         "google/gemma-4-31b-it": {},
         "zai/glm-4.7-flash": {},
         "openrouter/nvidia/nemotron-3.5-lightning:free": {},
+        "gonka/MiniMaxAI/MiniMax-M2.7": {},
+        "gonka/zai-org/GLM-5.3-Flash": {},
         "openrouter/free": {}
       },
       "model": {
@@ -319,6 +329,7 @@ openclaw models auth list
           "google/gemma-4-31b-it",
           "zai/glm-4.7-flash",
           "openrouter/nvidia/nemotron-3.5-lightning:free",
+          "gonka/MiniMaxAI/MiniMax-M2.7",
           "openrouter/free"
         ]
       }
@@ -331,6 +342,15 @@ openclaw models auth list
         "api": "openai-completions",
         "apiKey": "${OMNIROUTE_API_KEY}",
         "models": [ { "id": "auto", "name": "OmniRoute auto (free providers)" } ]
+      },
+      "gonka": {
+        "baseUrl": "https://proxy.gonkabroker.com/v1",
+        "apiKey": "${GONKA_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          { "id": "MiniMaxAI/MiniMax-M2.7", "name": "MiniMax M2.7 (Gonka Broker)" },
+          { "id": "zai-org/GLM-5.3-Flash", "name": "GLM-5.3-Flash (Gonka Broker)" }
+        ]
       }
     }
   }
@@ -341,7 +361,10 @@ openclaw models auth list
 
 - `agents.defaults.models` — это список разрешённых моделей. Модель, которой в нём нет, агент не возьмёт.
 - `${OMNIROUTE_API_KEY}` подставляется из `~/.openclaw/.env` (шаблон: [files/openclaw.env.example](files/openclaw.env.example)). Сам ключ в JSON не пишется.
+- `${GONKA_API_KEY}` берётся оттуда же.
 - Порядок запасных: сильные модели идут первыми, `openrouter/free` стоит последним как «хоть что-нибудь».
+- **Gonka** стоит предпоследним запасным (`gonka/MiniMaxAI/MiniMax-M2.7`) у `main` и `researcher`. В OmniRoute мы его **намеренно не добавляем**: иначе `auto` будет брать его в обычной работе и быстро сожжёт месячный грант. Все три модели Gonka прошли тест вызова инструментов за 2–3 с. В конфиг мы внесли MiniMax-M2.7 и GLM-5.3-Flash; DeepSeek-V4-Flash-0731 добавляется так же, новым элементом в `models`.
+- SambaNova (кредиты кончились) и Mistral (постоянные 429) в списках не участвуют.
 
 ### 4.3 Как применить фрагмент
 
@@ -396,7 +419,8 @@ openclaw agents list
       "researcher": {
         "model": { "primary": "omniroute/auto",
                    "fallbacks": ["openrouter/thinkingmachines/inkling-small:free", "google/gemini-3.8-flash",
-                                 "groq/openai/gpt-oss-120b", "openrouter/free"] },
+                                 "groq/openai/gpt-oss-120b", "gonka/MiniMaxAI/MiniMax-M2.7",
+                                 "openrouter/free"] },
         "subagents": { "allowAgents": [] }
       },
       "worker": {
@@ -410,9 +434,9 @@ openclaw agents list
 
 | Агент | Роль | Модели |
 |---|---|---|
-| `main` | Координатор. Сам передаёт работу помощникам (`delegationMode: "prefer"`) | общие: `omniroute/auto` → Inkling → GLM-5.3 → … |
+| `main` | Координатор. Сам передаёт работу помощникам (`delegationMode: "prefer"`) | общие: `omniroute/auto` → Inkling → GLM-5.3 → … → Gonka MiniMax-M2.7 → `openrouter/free` |
 | `guest` | Агент второго пользователя, своя память и рабочая папка | общие, как у `main` |
-| `researcher` | Поиск и чтение в интернете | `omniroute/auto` → Inkling Small → Gemini Flash → Groq → `openrouter/free` |
+| `researcher` | Поиск и чтение в интернете | `omniroute/auto` → Inkling Small → Gemini Flash → Groq → Gonka MiniMax-M2.7 → `openrouter/free` |
 | `worker` | Код и команды на сервере | GLM-5.3 (NVIDIA) → GLM-4.7-Flash (Z.ai) → `openrouter/free` |
 
 Ограничения: одновременно не больше 2 подагентов, без вложенности (помощники не порождают своих), таймаут задачи 10 минут. Больше на маленьком сервере не потянуть ни по памяти, ни по лимитам бесплатных моделей. Документация: [Sub-agents](https://docs.openclaw.ai/tools/subagents), [Multi-agent](https://docs.openclaw.ai/concepts/multi-agent).
@@ -570,6 +594,7 @@ omniroute providers test-all
 - **Активны:** `gemini-free`, `groq-free`, `nvidia-free`.
 - **Добавлены, но выключены:** `sambanova-free` (кредиты кончились, требует карту) и `mistral-free` (постоянные 429). Выключить можно так: `omniroute providers edit <имя> --inactive`.
 - **OpenRouter в OmniRoute не подключён.** OmniRoute считает бесплатным платный `openrouter/auto` и мог бы тратить ваши кредиты. Бесплатные модели OpenRouter OpenClaw вызывает напрямую, мимо OmniRoute.
+- **Gonka в OmniRoute не подключён** специально: его месячный грант бережём для запасного пути OpenClaw (раздел 4.2).
 - **Не подключайте** Kiro, OpenCode Free (они помечены `tos: avoid`) и любые OAuth-подписки (`omniroute oauth …`, `providers add --oauth`).
 
 Тест прямо через API, обычный ответ и вызов инструмента. Скрипт: [files/omniroute-test-models.mjs](files/omniroute-test-models.mjs). Он читает `OMNIROUTE_API_KEY` из `~/.openclaw/.env`.
@@ -769,6 +794,7 @@ oc-mail inbox
 | Телефон не подключается | Tailscale на телефоне выключен или другой аккаунт; Serve не включён на tailnet; HTTPS выключен | Включите VPN Tailscale на iPhone, включите HTTPS и Serve в админке, выполните `openclaw gateway restart`, затем заново `openclaw qr`. |
 | `systemctl --user` в SSH пишет «Failed to connect to bus» | Не задан `XDG_RUNTIME_DIR` | `export XDG_RUNTIME_DIR=/run/user/$(id -u)`; проверьте, что включён linger (`loginctl show-user openclaw` → `Linger=yes`). |
 | `oc-delegate`: `ssh: command not found` (или раньше `sshpass: command not found`) | На машине бота пропал SSH-клиент | `sudo apt-get install -y openssh-client`. Наши скрипты пробуют поставить его сами и ходят по ключу, без `sshpass`. |
+| Gonka отвечает 429 или ошибкой квоты | Сработало ограничение частоты запросов на бесплатном уровне или кончился месячный грант (обновляется 1-го числа) | Подождать. OpenClaw перейдёт на `openrouter/free`. |
 | `models scan` поставил крошечную модель по умолчанию | Скан выбирает по своим критериям | Задайте модели фрагментом из раздела 4. |
 
 ### 9.3 Откат

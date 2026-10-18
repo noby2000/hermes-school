@@ -13,6 +13,8 @@
         "google/gemma-4-31b-it": {},
         "zai/glm-4.7-flash": {},
         "openrouter/nvidia/nemotron-3.5-lightning:free": {},
+        "gonka/MiniMaxAI/MiniMax-M2.7": {},
+        "gonka/zai-org/GLM-5.3-Flash": {},
         "openrouter/free": {}
       },
       "model": {
@@ -27,6 +29,7 @@
           "google/gemma-4-31b-it",
           "zai/glm-4.7-flash",
           "openrouter/nvidia/nemotron-3.5-lightning:free",
+          "gonka/MiniMaxAI/MiniMax-M2.7",
           "openrouter/free"
         ]
       },
@@ -39,7 +42,13 @@
     },
     "entries": {
       "main": {
-        "subagents": { "allowAgents": ["researcher", "worker"], "delegationMode": "prefer" }
+        "subagents": {
+          "allowAgents": [
+            "researcher",
+            "worker"
+          ],
+          "delegationMode": "prefer"
+        }
       },
       "researcher": {
         "model": {
@@ -48,20 +57,34 @@
             "openrouter/thinkingmachines/inkling-small:free",
             "google/gemini-3.8-flash",
             "groq/openai/gpt-oss-120b",
+            "gonka/MiniMaxAI/MiniMax-M2.7",
             "openrouter/free"
           ]
         },
-        "subagents": { "allowAgents": [] }
+        "subagents": {
+          "allowAgents": []
+        }
       },
       "worker": {
         "model": {
           "primary": "nvidia/z-ai/glm-5.3",
-          "fallbacks": ["zai/glm-4.7-flash", "openrouter/free"]
+          "fallbacks": [
+            "zai/glm-4.7-flash",
+            "openrouter/free"
+          ]
         },
-        "subagents": { "allowAgents": [] }
+        "subagents": {
+          "allowAgents": []
+        }
       },
       "guest": {
-        "subagents": { "allowAgents": ["researcher", "worker"], "delegationMode": "prefer" }
+        "subagents": {
+          "allowAgents": [
+            "researcher",
+            "worker"
+          ],
+          "delegationMode": "prefer"
+        }
       }
     }
   },
@@ -71,7 +94,27 @@
         "baseUrl": "http://127.0.0.1:20128/v1",
         "api": "openai-completions",
         "apiKey": "${OMNIROUTE_API_KEY}",
-        "models": [ { "id": "auto", "name": "OmniRoute auto (free providers)" } ]
+        "models": [
+          {
+            "id": "auto",
+            "name": "OmniRoute auto (free providers)"
+          }
+        ]
+      },
+      "gonka": {
+        "baseUrl": "https://proxy.gonkabroker.com/v1",
+        "apiKey": "${GONKA_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "MiniMaxAI/MiniMax-M2.7",
+            "name": "MiniMax M2.7 (Gonka Broker)"
+          },
+          {
+            "id": "zai-org/GLM-5.3-Flash",
+            "name": "GLM-5.3-Flash (Gonka Broker)"
+          }
+        ]
       }
     }
   }

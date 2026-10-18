@@ -12,6 +12,7 @@
           "google/gemma-4-31b-it",
           "zai/glm-4.7-flash",
           "openrouter/nvidia/nemotron-3.5-lightning:free",
+          "gonka/MiniMaxAI/MiniMax-M2.7",
           "openrouter/free"
         ]
       }
@@ -20,7 +21,12 @@
       "researcher": {
         "model": {
           "primary": "openrouter/thinkingmachines/inkling-small:free",
-          "fallbacks": ["google/gemini-3.8-flash", "groq/openai/gpt-oss-120b", "openrouter/free"]
+          "fallbacks": [
+            "google/gemini-3.8-flash",
+            "groq/openai/gpt-oss-120b",
+            "gonka/MiniMaxAI/MiniMax-M2.7",
+            "openrouter/free"
+          ]
         }
       }
     }
