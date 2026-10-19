@@ -6,12 +6,41 @@
 <p>Пошаговый план: как научиться работать с <a href="https://github.com/NousResearch/hermes-agent">Hermes Agent</a> — открытым AI-агентом от Nous Research. Он умеет работать в терминале, пользоваться инструментами, создавать себе «навыки», помнить тебя между сессиями и отвечать в Telegram.</p>
 <div class="progress"><div id="bar"></div></div><p id="ptext" class="muted"></p></header>
 
+<section id="now" class="nowbox"><h2>Где мы сейчас — прогресс Максима</h2>
+<p><b>Шаг 1 почти пройден, молодец!</b> 💪 Вот что уже работает:</p>
+<ul class="donelist">
+<li>✅ <b>Hermes Agent v0.22.2</b> установлен в Ubuntu (WSL) на Windows, <code>hermes doctor</code> проходит.</li>
+<li>✅ <b>Node.js</b> стоит, проект <code>~/eatandfit</code> (Vite + TypeScript) начат, готов <code>research_report.md</code> — исследование рынка.</li>
+<li>✅ Hermes уже сделал <b>предложение по MVP</b> для eatandfit.online — сервиса для нутрициологов и фитнес-тренеров.</li>
+<li>✅ Заведены <b>бесплатные API-ключи</b>: OpenRouter, Z.ai, SambaNova, NVIDIA, Groq, Google AI Studio.</li>
+<li>✅ <b>Основная модель — Z.ai GLM-4.5-Flash</b>: бесплатная и работает из России без VPN.</li>
+<li>✅ <b>Субагенты</b> (<code>delegate_task</code>) — на GLM-4.7-Flash, а если она перегружена, сами переключаются на GLM-4.5-Flash.</li>
+<li>✅ <b>Вспомогательные задачи</b> (названия чатов, сжатие контекста, картинки через GLM-4.6V-Flash) — тоже на Z.ai.</li>
+<li>✅ Настроена <b>цепочка запасных моделей</b>: если одна не отвечает, Hermes берёт следующую.</li>
+<li>✅ Настроена <b>удалённая помощь</b>: наставник может подключиться и помочь с настройкой.</li>
+</ul>
+<p>Осталось проверить в Шаге 1: Git и GitHub, uv, редактор кода и установку OpenSpec (пункты без значка «сделано ✅»).</p>
+<p><b>Текущий этап → <a href="#step3">Шаг 3. Идея и спецификация (OpenSpec + Hermes)</a>.</b> Шаг 2 (модели и первые разговоры) ты по сути прошёл по ходу настройки — повторим главное в первом пункте чек-листа.</p>
+<p class="muted">Галочки сохраняются только в твоём браузере, поэтому уже сделанное отмечено значком «сделано ✅» прямо в тексте — галочки можешь ставить сам.</p></section>
+
+<section id="lessons"><h2>Разбор ошибок (чему научились)</h2>
+<p>Ошибки — это нормально, у всех разработчиков они бывают. Главное — понять, почему так вышло. Вот что мы нашли и починили:</p>
+<details><summary><b>1. Опечатка в config.yaml</b></summary><p>В файле было <code>plreasoningugins:</code> вместо <code>plugins:</code> — из-за этого ломался раздел плагинов. <b>Урок:</b> настройки меняй через <code>hermes config</code> и <code>hermes model</code>, а не руками; перед ручной правкой делай копию (<code>cp ~/.hermes/config.yaml ~/.hermes/config.yaml.bak</code>); после правки запускай <code>hermes doctor</code>.</p></details>
+<details><summary><b>2. Ключи в .env без имени</b></summary><p>Ключи были вставлены в <code>~/.hermes/.env</code> голой строкой — Hermes их не видит. Правильный формат — имя переменной, знак «=» и значение: <pre>ИМЯ_API_KEY=значение</pre> Например <code>OPENROUTER_API_KEY=...</code>. Проще всего вводить ключ через <code>hermes model</code> — он сам запишет как надо.</p></details>
+<details><summary><b>3. Ключи нельзя показывать</b></summary><p>Ключ — как пароль от кошелька. Никогда не пересылай его в чатах, не показывай на скриншотах и не клади в GitHub. <b>Если ключ засветился — сразу удали его у провайдера и создай новый</b> (перевыпусти).</p></details>
+<details><summary><b>4. Kimi: ошибка 401 и зависания</b></summary><p>Ключ от международной платформы (<b>moonshot.ai</b>) был прописан на китайский адрес (<b>moonshot.cn</b>) — сервер отвечал 401 («не авторизован»). А ещё на счёте был ноль, аккаунт приостановили, и Hermes зависал на каждом ответе. <b>Урок:</b> проверь, что у провайдера есть баланс или бесплатный лимит, и что адрес (base URL) совпадает с той платформой, где ты брал ключ.</p></details>
+<details><summary><b>5. Groq: ошибка 413</b></summary><p>Бесплатных лимитов Groq (около 7–8 тысяч токенов в минуту) мало для Hermes — один запрос агента больше, отсюда ошибка 413. А модель gpt-oss ругается на настройку <code>reasoning_effort</code>, если там не low/medium/high. <b>Урок:</b> для агента важны лимиты провайдера, а не только «бесплатно».</p></details>
+<details><summary><b>6. Что работает из России без VPN</b></summary><p>OpenRouter, NVIDIA, Groq и Gemini из России отвечают отказом (403, 451 или «location not supported»). SambaNova просит привязать карту. <b>Без VPN работает Z.ai</b> — поэтому он основной. С VPN вариантов больше, но VPN Happ мешает удалённой помощи (tmate, Tailscale) — на время помощи его надо выключать.</p></details>
+<details><summary><b>7. Бесплатная модель бывает перегружена</b></summary><p>Бесплатная GLM-4.7-Flash иногда отвечает ошибкой 429 («слишком много запросов») или думает по 1,5–2 минуты. Поэтому основная модель — GLM-4.5-Flash, а для всех ролей настроены запасные. <b>Урок:</b> всегда держи запасной вариант.</p></details>
+<details><summary><b>8. Vercel, Supabase, Firebase — не для нас</b></summary><p>Hermes предлагал эти сервисы, но для российского приложения их использовать нельзя: по <b>152-ФЗ</b> персональные данные россиян нужно хранить в России. Наш выбор — <b>Yandex Cloud, Selectel или Timeweb Cloud + PostgreSQL</b>. <b>Урок:</b> агент знает много, но законы РФ проверяй сам — и проси агента учитывать их прямо в задаче.</p></details>
+</section>
+
 <section><h2>Отдельно: OpenClaw</h2><p>Полное руководство по установке нашей системы OpenClaw с нуля (свой компьютер или сервер DigitalOcean): <a href="/openclaw/">открыть гайд по OpenClaw</a>.</p></section>
 <section><h2>Цель</h2><p>С помощью Hermes построить своё приложение для России — сервис для <b>нутрициологов и фитнес-тренеров</b> (клиенты, планы питания и тренировок, прогресс). Домен проекта уже есть: <b>eatandfit.online</b>. Hermes будет твоим напарником-разработчиком.</p></section>
 <section><h2>Дорожная карта</h2><ol class="roadmap">
-<li class="cur"><a href="#step1">Шаг 1. Подготовка с нуля</a> — ← мы здесь</li>
-<li>Шаг 2. Первый запуск Hermes: разговор, модели, slash-команды</li>
-<li><b>Шаг 3. Идея и спецификация (OpenSpec + Hermes)</b>
+<li><a href="#step1">Шаг 1. Подготовка с нуля</a> — ✅ почти готово</li>
+<li>Шаг 2. Первый запуск Hermes: разговор, модели, slash-команды — ✅ пройден по ходу настройки</li>
+<li class="cur"><a href="#step3">Шаг 3. Идея и спецификация (OpenSpec + Hermes)</a> — ← мы здесь, <b>текущий этап</b>
 <div class="sub">Сначала спецификация — потом код. В папке проекта:
 <pre>mkdir ~/eatandfit && cd ~/eatandfit && git init
 openspec init --tools hermes</pre>
@@ -38,11 +67,66 @@ openspec init --tools hermes</pre>
 <li>Шаг 6. Деплой на eatandfit.online</li>
 <li>Шаг 7. Особенности РФ: персональные данные по 152-ФЗ (хранение в России, согласие), доступные из РФ LLM и платёжные системы</li>
 <li>Шаг 8. Telegram-бот через <code>hermes gateway</code> и автоматизации (cron)</li>
-</ol><p class="muted">Шаги 2–8 будут расписаны позже.</p></section>
+</ol><p class="muted">Шаг 3 расписан ниже чек-листом. Шаги 4–8 будут расписаны позже.</p></section>
+
+<section id="step3" class="nowbox"><h2>Шаг 3. Идея и спецификация (OpenSpec + Hermes) <span class="badge">Текущий этап</span></h2>
+<p>Цель шага: <b>решить, что именно входит в первую версию (MVP), на чём и где она будет работать, и описать первую фичу спецификацией</b> — до того, как писать код. Работаем в папке проекта: <code>cd ~/eatandfit</code>, потом <code>hermes</code>.</p>
+<label class="task"><input type="checkbox" data-id="s3-basics"><div><b>Закрепи Шаг 2: команды Hermes.</b> В чате попробуй: <code>/help</code> — все команды, <code>/model</code> — какая модель сейчас, <code>/new</code> — новый чистый разговор (делай его, когда начинаешь новую задачу). Если что-то странно — выйди и запусти <code>hermes doctor</code>. Бесплатная модель думает 10–20 секунд — это нормально, подожди.</div></label>
+<label class="task"><input type="checkbox" data-id="s3-mvp"><div><b>Выбери объём MVP.</b> Открой предложение по MVP, которое сделал Hermes, и реши, что <b>вырезаем</b>. Правило: MVP — самое маленькое, что уже приносит пользу нутрициологу. Попроси Hermes:
+<pre>Прочитай research_report.md и своё предложение по MVP.
+Сделай файл MVP.md: таблица «в MVP / потом / не делаем».
+В MVP оставь только: регистрация специалиста, карточка клиента,
+дневник питания клиента. Оплату, чат, приложение для телефона,
+ИИ-рекомендации — перенеси в «потом». Объясни каждое решение одной фразой.</pre>
+Прочитай <code>MVP.md</code> и поправь, если не согласен — решаешь ты, а не агент.</div></label>
+<label class="task"><input type="checkbox" data-id="s3-roles"><div><b>Опиши пользователей и главный сценарий.</b> Кто пользуется: специалист (нутрициолог или тренер) и его клиент. Попроси Hermes дописать в <code>MVP.md</code> раздел «Сценарий»: специалист регистрируется → добавляет клиента → клиент вносит, что съел → специалист видит дневник и пишет комментарий.</div></label>
+<label class="task"><input type="checkbox" data-id="s3-stack"><div><b>Выбери стек и хостинг в России (152-ФЗ).</b> Персональные данные россиян храним в России, поэтому <b>не</b> Vercel / Supabase / Firebase. Попроси:
+<pre>Сравни таблицей Yandex Cloud, Selectel и Timeweb Cloud для нашего MVP:
+цена в месяц на старте, управляемый PostgreSQL, простота деплоя.
+Фронтенд у нас уже Vite + TypeScript. Предложи бэкенд на TypeScript
+(Node.js) и базу PostgreSQL. Учти 152-ФЗ: данные хранятся в РФ,
+нужно согласие пользователя на обработку персональных данных.
+Запиши итог в STACK.md. Ничего не покупай и не регистрируй.</pre>
+Выбор обсуди с папой — хостинг платный, решаем вместе.</div></label>
+<label class="task"><input type="checkbox" data-id="s3-git"><div><b>Сохрани решения в git.</b> Если в папке ещё нет git — <code>git init</code>. Затем:
+<pre>git add MVP.md STACK.md research_report.md
+git commit -m "MVP scope and stack decision"</pre> Ключи и файл <code>.env</code> в git не добавляй никогда — проверь, что <code>.env</code> есть в <code>.gitignore</code>.</div></label>
+<label class="task"><input type="checkbox" data-id="s3-osinst"><div><b>Установи OpenSpec</b> (если ещё не стоит — пункт из Шага 1): <pre>npm install -g @fission-ai/openspec@latest
+openspec --version</pre></div></label>
+<label class="task"><input type="checkbox" data-id="s3-osinit"><div><b>Подключи OpenSpec к проекту.</b> <pre>cd ~/eatandfit
+openspec init --tools hermes</pre> Появятся папка <code>openspec/</code> и навыки в <code>.hermes/skills/</code>. Добавь их в <code>~/.hermes/config.yaml</code> (сделай копию конфига перед правкой!):
+<pre>skills:
+  external_dirs:
+    - ~/eatandfit/.hermes/skills</pre> Потом <code>hermes doctor</code>, перезапусти Hermes и проверь в <code>/help</code>, что появились навыки <code>/openspec-…</code>.</div></label>
+<label class="task"><input type="checkbox" data-id="s3-explore"><div><b>Обсуди первую фичу без кода (explore).</b> Начни <code>/new</code> и напиши:
+<pre>Не пиши код. Давай обсудим первую фичу eatandfit по MVP.md:
+регистрация специалиста, добавление клиента и дневник питания.
+Задай мне вопросы: какие поля, кто что видит, что делать с ошибками.</pre>
+Отвечай на вопросы агента — так он поймёт, чего ты хочешь.</div></label>
+<label class="task"><input type="checkbox" data-id="s3-propose"><div><b>Попроси Hermes написать спецификацию (propose).</b>
+<pre>/openspec-propose add-specialist-client-food-diary
+Специалист (нутрициолог или тренер) регистрируется по email и паролю.
+Добавляет клиента (имя, возраст, рост, вес, цель, аллергии) и
+отправляет ему приглашение. Клиент заходит и ведёт дневник питания:
+приём пищи, блюдо, граммы, калории, БЖУ. Специалист видит дневник
+своих клиентов и оставляет комментарий. Чужих клиентов не видит.
+Перед регистрацией — согласие на обработку персональных данных.
+Данные хранятся в PostgreSQL на хостинге в РФ (152-ФЗ). Стек — STACK.md.</pre>
+Если имя навыка другое — посмотри точное в <code>/help</code>.</div></label>
+<label class="task"><input type="checkbox" data-id="s3-review"><div><b>Прочитай и поправь спецификацию сам.</b> Открой <code>openspec/changes/add-specialist-client-food-diary/</code> в VS Code (<code>code .</code>). Проверь: понятно ли, что делает каждый пользователь? Нет ли лишнего, чего нет в MVP? Есть ли согласие на ПД? Задачи (tasks) маленькие? Что не нравится — попроси Hermes исправить.</div></label>
+<label class="task"><input type="checkbox" data-id="s3-mentor"><div><b>Ревью с папой / наставником.</b> Покажи спецификацию папе — пусть задаст вопросы как «заказчик». Это нормальная практика в командах: перед кодом спецификацию смотрит второй человек.</div></label>
+<label class="task"><input type="checkbox" data-id="s3-commit"><div><b>Зафиксируй спецификацию в git и на GitHub.</b>
+<pre>git add openspec
+git commit -m "Spec: specialist, client and food diary"
+gh repo create eatandfit --private --source=. --push   # первый раз
+git push                                               # дальше</pre>
+🎉 Шаг 3 готов! Дальше — <b>apply</b>: агент пишет код по спецификации (это уже Шаги 4–5).</div></label>
+<button id="reset3" class="reset" data-p="s3-">Сбросить галочки Шага 3</button>
+</section>
 
 <section id="step1"><h2>Шаг 1. Что сделать с нуля, чтобы начать разработку</h2>
-<label class="task"><input type="checkbox" data-id="s1-pc"><div><b>Компьютер и ОС.</b> Подойдёт Linux, macOS или Windows 10/11. Hermes работает на Windows и нативно, но для обучения удобнее <b>WSL2</b> (Linux внутри Windows): открой PowerShell от администратора и выполни <pre>wsl --install</pre> затем перезагрузи компьютер и задай имя пользователя Ubuntu.</div></label>
-<label class="task"><input type="checkbox" data-id="s1-term"><div><b>Терминал.</b> macOS: «Терминал» (Cmd+Пробел → Terminal). Linux: Ctrl+Alt+T. Windows: «Ubuntu» из меню Пуск (WSL2) или Windows Terminal. Попробуй команды: <pre>pwd
+<label class="task"><input type="checkbox" data-id="s1-pc"><div><span class="done">сделано ✅</span> <b>Компьютер и ОС.</b> Подойдёт Linux, macOS или Windows 10/11. Hermes работает на Windows и нативно, но для обучения удобнее <b>WSL2</b> (Linux внутри Windows): открой PowerShell от администратора и выполни <pre>wsl --install</pre> затем перезагрузи компьютер и задай имя пользователя Ubuntu.</div></label>
+<label class="task"><input type="checkbox" data-id="s1-term"><div><span class="done">сделано ✅</span> <b>Терминал.</b> macOS: «Терминал» (Cmd+Пробел → Terminal). Linux: Ctrl+Alt+T. Windows: «Ubuntu» из меню Пуск (WSL2) или Windows Terminal. Попробуй команды: <pre>pwd
 ls
 mkdir projects && cd projects</pre></div></label>
 <label class="task"><input type="checkbox" data-id="s1-git"><div><b>Git.</b> Проверь: <pre>git --version</pre> Если нет — Ubuntu/WSL: <code>sudo apt update && sudo apt install -y git curl</code>; macOS: <code>xcode-select --install</code>. Представься git'у: <pre>git config --global user.name "Твоё Имя"
@@ -52,7 +136,7 @@ git config --global user.email "почта@example.com"</pre></div></label>
 uv --version
 uv python install</pre></div></label>
 <label class="task"><input type="checkbox" data-id="s1-ed"><div><b>Редактор кода.</b> Установи <a href="https://code.visualstudio.com">VS Code</a> (или Cursor). В Windows поставь расширение «WSL» и открывай папки командой <code>code .</code> из терминала Ubuntu.</div></label>
-<label class="task"><input type="checkbox" data-id="s1-key"><div><b>Ключ к модели (LLM) — начинаем бесплатно.</b> Hermes нужна языковая модель. Подключение — после установки Hermes (следующие пункты); ключи хранятся в <code>~/.hermes/.env</code>. <b>Ключ — как пароль: никому не показывай и не клади в GitHub.</b> Модель должна уметь <b>вызывать инструменты (tool calling)</b> и держать контекст <b>≥ 64 000 токенов</b> — иначе Hermes не запустится. Полный официальный список провайдеров: <a href="https://hermes-agent.nousresearch.com/docs/integrations/providers">docs → AI Providers</a>. Звёздочка <b>*</b> — есть ограничения для России (см. сноску внизу).
+<label class="task"><input type="checkbox" data-id="s1-key"><div><span class="done">сделано ✅</span> <b>Ключ к модели (LLM) — начинаем бесплатно.</b> Hermes нужна языковая модель. Подключение — после установки Hermes (следующие пункты); ключи хранятся в <code>~/.hermes/.env</code>. <b>Ключ — как пароль: никому не показывай и не клади в GitHub.</b> Модель должна уметь <b>вызывать инструменты (tool calling)</b> и держать контекст <b>≥ 64 000 токенов</b> — иначе Hermes не запустится. Полный официальный список провайдеров: <a href="https://hermes-agent.nousresearch.com/docs/integrations/providers">docs → AI Providers</a>. Звёздочка <b>*</b> — есть ограничения для России (см. сноску внизу).
 <h4>Зарубежные облачные</h4>
 <details open><summary><b>OpenRouter* — сотни моделей, бесплатные с суффиксом <code>:free</code></b></summary>Ключ: <a href="https://openrouter.ai/keys">openrouter.ai/keys</a>. Бесплатно: 20 запросов/мин, <b>50/день</b> (1000/день, если когда-либо купить ≥10 кредитов) — <a href="https://openrouter.ai/docs/api-reference/limits">источник</a>. Hermes делает несколько запросов на один вопрос. Выбирай <code>:free</code>-модели с пометкой tools.<pre>echo 'OPENROUTER_API_KEY=sk-or-...' >> ~/.hermes/.env
 hermes model          # OpenRouter → модель с :free
@@ -116,20 +200,20 @@ ollama ps        # колонка CONTEXT = 64000</pre>В Hermes: <code>hermes m
 <li><b>Российские провайдеры для иностранцев / из-за рубежа:</b> GigaChat API для физлиц требует входа через Сбер ID; Yandex Cloud для оплаты — российская карта или юрлицо. <i>Не проверено: точные требования к иностранцам и работа из-за рубежа — уточни в документации Сбера и Яндекса.</i></li>
 </ul></div>
 </div></label>
-<label class="task"><input type="checkbox" data-id="s1-inst"><div><b>Установка Hermes.</b> Linux / macOS / WSL2: <pre>curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
+<label class="task"><input type="checkbox" data-id="s1-inst"><div><span class="done">сделано ✅</span> <b>Установка Hermes.</b> Linux / macOS / WSL2: <pre>curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
 source ~/.bashrc   # или: source ~/.zshrc</pre> Windows (PowerShell, без WSL): <pre>iex (irm https://hermes-agent.nousresearch.com/install.ps1)</pre></div></label>
-<label class="task"><input type="checkbox" data-id="s1-setup"><div><b>Подключи модель.</b> С Nous Portal: <pre>hermes setup --portal</pre> С OpenRouter или другим провайдером: <pre>hermes setup     # мастер настройки
+<label class="task"><input type="checkbox" data-id="s1-setup"><div><span class="done">сделано ✅</span> <b>Подключи модель.</b> С Nous Portal: <pre>hermes setup --portal</pre> С OpenRouter или другим провайдером: <pre>hermes setup     # мастер настройки
 hermes model     # выбрать провайдера и модель</pre></div></label>
-<label class="task"><input type="checkbox" data-id="s1-run"><div><b>Проверь, что всё работает.</b> <pre>hermes doctor
+<label class="task"><input type="checkbox" data-id="s1-run"><div><span class="done">сделано ✅</span> <b>Проверь, что всё работает.</b> <pre>hermes doctor
 hermes</pre> Напиши агенту: «Привет! Какая у тебя модель и какие инструменты?». Выход — Ctrl+C. Обновление в будущем: <code>hermes update</code>.</div></label>
-<label class="task"><input type="checkbox" data-id="s1-node"><div><b>Node.js (нужен для OpenSpec).</b> OpenSpec требует <b>Node.js 20.19.0 или новее</b>. Проще всего — через nvm (<a href="https://github.com/nvm-sh/nvm">github.com/nvm-sh/nvm</a>) или установщик с <a href="https://nodejs.org">nodejs.org</a> (бери LTS):<pre>curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+<label class="task"><input type="checkbox" data-id="s1-node"><div><span class="done">сделано ✅</span> <b>Node.js (нужен для OpenSpec).</b> OpenSpec требует <b>Node.js 20.19.0 или новее</b>. Проще всего — через nvm (<a href="https://github.com/nvm-sh/nvm">github.com/nvm-sh/nvm</a>) или установщик с <a href="https://nodejs.org">nodejs.org</a> (бери LTS):<pre>curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 source ~/.bashrc
 nvm install --lts
 node --version    # должно быть v20.19 или выше</pre><i>Версия скрипта nvm в команде — смотри актуальную в README nvm.</i></div></label>
 <label class="task"><input type="checkbox" data-id="s1-openspec"><div><b>OpenSpec — разработка «от спецификации».</b> <a href="https://github.com/Fission-AI/OpenSpec">OpenSpec</a> — инструмент, где ты сначала вместе с агентом описываешь <i>что</i> строим (предложение, спецификации, задачи), и только потом агент пишет код. Hermes Agent есть в <a href="https://openspec.dev/docs/supported-tools">списке поддерживаемых инструментов</a>.<pre>npm install -g @fission-ai/openspec@latest
 openspec --version
 # macOS/Linux можно и так: brew install openspec</pre>Подключение к проекту — в Шаге 3.</div></label>
-<label class="task"><input type="checkbox" data-id="s1-orch"><div><b>Агенты и оркестратор (знакомство).</b> В Hermes есть инструмент <code>delegate_task</code>: главный агент (оркестратор) раздаёт задачи <b>субагентам</b>. У каждого — свой чистый контекст и свой терминал; в главный разговор возвращается только итог. Параллельно — до 10 субагентов по умолчанию. Субагенты не могут писать в общую память, задавать тебе вопросы и отправлять сообщения.
+<label class="task"><input type="checkbox" data-id="s1-orch"><div><span class="done">сделано ✅</span> <b>Агенты и оркестратор (знакомство).</b> В Hermes есть инструмент <code>delegate_task</code>: главный агент (оркестратор) раздаёт задачи <b>субагентам</b>. У каждого — свой чистый контекст и свой терминал; в главный разговор возвращается только итог. Параллельно — до 10 субагентов по умолчанию. Субагенты не могут писать в общую память, задавать тебе вопросы и отправлять сообщения.
 <p>Для eatandfit просто попроси главного агента, например:</p>
 <pre>Ты оркестратор проекта eatandfit (сервис для нутрициологов и тренеров).
 Раздай задачи субагентам параллельно:
@@ -151,11 +235,13 @@ openspec --version
   # provider: "openrouter"</pre>
 <p>Субагенты получают те же инструменты, что включены у главного агента (<code>hermes tools</code>). Осторожно: каждый субагент тратит запросы — на бесплатных лимитах (50/день у OpenRouter) начинай с 2–3 субагентов. <i>Отдельные «именные роли» (researcher/coder/tester) в документации не описаны — роли задаются текстом задачи.</i> Подробнее: <a href="https://hermes-agent.nousresearch.com/docs/user-guide/features/delegation">Subagent Delegation</a>.</p></div></label>
 <p class="muted">Документация: <a href="https://hermes-agent.nousresearch.com/docs/">hermes-agent.nousresearch.com/docs</a> · <a href="https://hermes-agent.nousresearch.com/docs/getting-started/quickstart">Quickstart</a></p>
-<button id="reset">Сбросить галочки</button>
+<button id="reset" class="reset" data-p="s1-">Сбросить галочки Шага 1</button>
 </section></main>
 <script>
 const b=[...document.querySelectorAll('input[type=checkbox]')],K='hermes-school:';
-function upd(){const d=b.filter(x=>x.checked).length;document.getElementById('bar').style.width=(100*d/b.length)+'%';document.getElementById('ptext').textContent=`Шаг 1: выполнено ${d} из ${b.length}`+(d==b.length?' 🎉':'');}
+function upd(){const d=b.filter(x=>x.checked).length;document.getElementById('bar').style.width=(100*d/b.length)+'%';
+const c=p=>{const a=b.filter(x=>x.dataset.id.startsWith(p));return `${a.filter(x=>x.checked).length} из ${a.length}`};
+document.getElementById('ptext').textContent=`Шаг 1: выполнено ${c('s1-')} · Шаг 3: выполнено ${c('s3-')}`+(d==b.length?' 🎉':'');}
 b.forEach(x=>{x.checked=localStorage.getItem(K+x.dataset.id)==='1';x.onchange=()=>{localStorage.setItem(K+x.dataset.id,x.checked?'1':'0');upd();};});
-document.getElementById('reset').onclick=()=>{b.forEach(x=>{x.checked=false;localStorage.removeItem(K+x.dataset.id)});upd();};upd();
+document.querySelectorAll('button.reset').forEach(r=>r.onclick=()=>{b.filter(x=>x.dataset.id.startsWith(r.dataset.p)).forEach(x=>{x.checked=false;localStorage.removeItem(K+x.dataset.id)});upd();});upd();
 </script></body></html>
