@@ -91,6 +91,15 @@ openspec init --tools hermes</pre>
 <label class="task"><input type="checkbox" data-id="s3-git"><div><b>Сохрани решения в git.</b> Если в папке ещё нет git — <code>git init</code>. Затем:
 <pre>git add MVP.md STACK.md research_report.md
 git commit -m "MVP scope and stack decision"</pre> Ключи и файл <code>.env</code> в git не добавляй никогда — проверь, что <code>.env</code> есть в <code>.gitignore</code>.</div></label>
+<label class="task"><input type="checkbox" data-id="s3-github"><div><b>Выложить проект на GitHub и добавить папу соавтором.</b> Так код хранится не только на твоём компьютере, и папа может смотреть и помогать. В Ubuntu (WSL):
+<pre>sudo apt install gh
+gh auth login        # GitHub.com → HTTPS → вход через браузер
+cd ~/eatandfit
+echo .env >> .gitignore
+git status           # .env в списке быть НЕ должно!
+gh repo create eatandfit --private --source=. --remote=origin --push
+gh api -X PUT repos/ТВОЙ_ЛОГИН/eatandfit/collaborators/noby2000 -f permission=push</pre>
+Вместо последней команды можно через сайт: репозиторий → <b>Settings → Collaborators → Add people → noby2000</b>. Потом папа принимает приглашение (придёт ему на почту) — и вы работаете в одном репозитории.</div></label>
 <label class="task"><input type="checkbox" data-id="s3-osinst"><div><b>Установи OpenSpec</b> (если ещё не стоит — пункт из Шага 1): <pre>npm install -g @fission-ai/openspec@latest
 openspec --version</pre></div></label>
 <label class="task"><input type="checkbox" data-id="s3-osinit"><div><b>Подключи OpenSpec к проекту.</b> <pre>cd ~/eatandfit
@@ -118,8 +127,7 @@ openspec init --tools hermes</pre> Появятся папка <code>openspec/</
 <label class="task"><input type="checkbox" data-id="s3-commit"><div><b>Зафиксируй спецификацию в git и на GitHub.</b>
 <pre>git add openspec
 git commit -m "Spec: specialist, client and food diary"
-gh repo create eatandfit --private --source=. --push   # первый раз
-git push                                               # дальше</pre>
+git push</pre> Репозиторий на GitHub ты уже создал в пункте «Выложить проект на GitHub» — теперь хватает <code>git push</code>.
 🎉 Шаг 3 готов! Дальше — <b>apply</b>: агент пишет код по спецификации (это уже Шаги 4–5).</div></label>
 <button id="reset3" class="reset" data-p="s3-">Сбросить галочки Шага 3</button>
 </section>
