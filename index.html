@@ -19,7 +19,22 @@
 <li>✅ Настроена <b>цепочка запасных моделей</b>: если одна не отвечает, Hermes берёт следующую.</li>
 <li>✅ Настроена <b>удалённая помощь</b>: наставник может подключиться и помочь с настройкой.</li>
 </ul>
-<p>Осталось проверить в Шаге 1: Git и GitHub, uv, редактор кода и установку OpenSpec (пункты без значка «сделано ✅»).</p>
+<h3>Новое за 20 октября 2026 🚀</h3>
+<ul class="donelist">
+<li>✅ <b>Свой OmniRoute</b> на твоём компьютере (в Ubuntu/WSL). Это «распределитель запросов»: Hermes спрашивает его, а он сам выбирает, какая бесплатная модель сейчас ответит. Работает только с <b>твоими</b> ключами, запускается сам вместе с системой (служба <code>omniroute.service</code>) и слушает только твой компьютер — <code>127.0.0.1:20128</code>. Панель управления: <a href="http://127.0.0.1:20128">http://127.0.0.1:20128</a> (открывается только у тебя), пароль лежит в файле <code>~/.omniroute-credentials</code>.</li>
+<li>✅ <b>Hermes теперь ходит через OmniRoute</b> — цепочка <code>free-chain</code>: Gonka MiniMax-M2.7 → OpenRouter minimax-m3.1-flash:free → Gonka DeepSeek-V4-Flash → Gonka GLM-5.3-Flash → Z.ai GLM-4.5-Flash → OpenRouter Nemotron → Groq → NVIDIA. Если упадёт сам OmniRoute — Hermes пойдёт напрямую в Z.ai. С VPN отвечает примерно <b>за 4 секунды</b> ⚡</li>
+<li>✅ Добавлен ключ <b>Gonka Broker</b> — 1 млн бесплатных токенов в месяц, ключ включён.</li>
+<li>✅ Починили <b>IPv6</b>: система теперь сначала пробует IPv4, и запросы больше не зависают.</li>
+<li>✅ <b>GitHub:</b> создан приватный репозиторий <b>matikawuiu/eatandfit</b>, папа (noby2000) добавлен соавтором.</li>
+<li>✅ <b>Навыки OpenSpec подключены к Hermes</b> из <code>~/eatandfit/.hermes/skills</code> — их шесть: <code>openspec-propose</code>, <code>openspec-explore</code>, <code>openspec-apply-change</code>, <code>openspec-update-change</code>, <code>openspec-sync-specs</code>, <code>openspec-archive-change</code>.</li>
+</ul>
+<h3>Что дальше 👉</h3>
+<ol>
+<li><i>По желанию:</i> на <a href="https://openrouter.ai/settings/privacy">странице приватности OpenRouter</a> разреши бесплатные модели — тогда в цепочке заработает ещё и Nemotron.</li>
+<li>Проверь Hermes <b>без VPN</b>: выключи Happ, начни <code>/new</code> и спроси что-нибудь простое. Если отвечает долго — напиши, поставим Z.ai первым.</li>
+<li>Продолжай <a href="#step3">Шаг 3</a>: выбери объём MVP, опиши сценарий и стек, а потом напиши с Hermes <b>первую спецификацию OpenSpec</b> для eatandfit (пункты «explore» и «propose»).</li>
+</ol>
+<p>Осталось проверить в Шаге 1 только uv и редактор кода (пункты без значка «сделано ✅»).</p>
 <p><b>Текущий этап → <a href="#step3">Шаг 3. Идея и спецификация (OpenSpec + Hermes)</a>.</b> Шаг 2 (модели и первые разговоры) ты по сути прошёл по ходу настройки — повторим главное в первом пункте чек-листа.</p>
 <p class="muted">Галочки сохраняются только в твоём браузере, поэтому уже сделанное отмечено значком «сделано ✅» прямо в тексте — галочки можешь ставить сам.</p></section>
 
@@ -33,6 +48,11 @@
 <details><summary><b>6. Что работает из России без VPN</b></summary><p>OpenRouter, NVIDIA, Groq и Gemini из России отвечают отказом (403, 451 или «location not supported»). SambaNova просит привязать карту. <b>Без VPN работает Z.ai</b> — поэтому он основной. С VPN вариантов больше, но VPN Happ мешает удалённой помощи (tmate, Tailscale) — на время помощи его надо выключать.</p></details>
 <details><summary><b>7. Бесплатная модель бывает перегружена</b></summary><p>Бесплатная GLM-4.7-Flash иногда отвечает ошибкой 429 («слишком много запросов») или думает по 1,5–2 минуты. Поэтому основная модель — GLM-4.5-Flash, а для всех ролей настроены запасные. <b>Урок:</b> всегда держи запасной вариант.</p></details>
 <details><summary><b>8. Vercel, Supabase, Firebase — не для нас</b></summary><p>Hermes предлагал эти сервисы, но для российского приложения их использовать нельзя: по <b>152-ФЗ</b> персональные данные россиян нужно хранить в России. Наш выбор — <b>Yandex Cloud, Selectel или Timeweb Cloud + PostgreSQL</b>. <b>Урок:</b> агент знает много, но законы РФ проверяй сам — и проси агента учитывать их прямо в задаче.</p></details>
+<details><summary><b>9. Сломанный IPv6 в WSL — запросы зависали</b></summary><p>DNS отдавал IPv6-адреса, но IPv6 в Ubuntu не работал — и запросы к моделям просто висели без ответа. Починили одной командой, теперь система сначала пробует IPv4: <pre>echo 'precedence ::ffff:0:0/96  100' | sudo tee -a /etc/gai.conf</pre> <b>Урок:</b> если <code>curl</code> к сайту зависает, а ya.ru в браузере открывается — попробуй <code>curl -4 ...</code>. Если с <code>-4</code> работает, виноват IPv6.</p></details>
+<details><summary><b>10. Два раза <code>skills:</code> в config.yaml — Hermes не запускался</b></summary><p>При подключении навыков OpenSpec блок <code>skills:</code> дописали в конец <code>~/.hermes/config.yaml</code> два раза подряд. Hermes отказался стартовать с ошибкой «duplicate key skills». Мы убрали дубль и вписали папку навыков в уже существующий блок. <b>Урок:</b> в YAML каждый ключ должен быть <b>один</b>. Не дописывай блок в конец файла — найди существующий и поправь его. После правки проверь <code>hermes config check</code> и <code>hermes doctor</code>. И всегда делай копию перед правкой: <code>cp ~/.hermes/config.yaml ~/.hermes/config.yaml.bak</code>.</p></details>
+<details><summary><b>11. VPN Happ рвёт связь</b></summary><p>Когда Happ отключался или переключал сервер, в Ubuntu пропадал интернет целиком, а заодно и Tailscale — наставник терял связь посреди настройки. <b>Урок:</b> в Happ включи <b>раздельное туннелирование</b> (split tunneling) и добавь Tailscale в исключения — тогда VPN и удалённая помощь не мешают друг другу.</p></details>
+<details><summary><b>12. Ключ Gonka был «на паузе»</b></summary><p>Ключ создали, но он не работал: в панели Gonka он стоял в статусе «на паузе», пока его не включили. <b>Урок:</b> после создания ключа загляни в панель провайдера и проверь, что ключ <b>активен</b> (а иногда нужно ещё подтвердить телефон по SMS).</p></details>
+<details><summary><b>13. Gemini, SambaNova и OpenRouter: что не подошло</b></summary><p>Ключ Gemini оказался не из Google AI Studio — правильный ключ начинается с <code>AIza</code>. К тому же Gemini блокирует регион даже через VPN. SambaNova просит привязать карту. Поэтому обоих убрали из цепочки. А у OpenRouter часть бесплатных моделей (например, Nemotron) работает, только если разрешить их на <a href="https://openrouter.ai/settings/privacy">странице приватности</a>. <b>Урок:</b> «бесплатно» не значит «работает сразу» — проверяй формат ключа, регион и настройки аккаунта.</p></details>
 </section>
 
 <section><h2>Отдельно: OpenClaw</h2><p>Полное руководство по установке нашей системы OpenClaw с нуля (свой компьютер или сервер DigitalOcean): <a href="/openclaw/">открыть гайд по OpenClaw</a>.</p></section>
@@ -91,7 +111,7 @@ openspec init --tools hermes</pre>
 <label class="task"><input type="checkbox" data-id="s3-git"><div><b>Сохрани решения в git.</b> Если в папке ещё нет git — <code>git init</code>. Затем:
 <pre>git add MVP.md STACK.md research_report.md
 git commit -m "MVP scope and stack decision"</pre> Ключи и файл <code>.env</code> в git не добавляй никогда — проверь, что <code>.env</code> есть в <code>.gitignore</code>.</div></label>
-<label class="task"><input type="checkbox" data-id="s3-github"><div><b>Выложить проект на GitHub и добавить папу соавтором.</b> Так код хранится не только на твоём компьютере, и папа может смотреть и помогать. В Ubuntu (WSL):
+<label class="task"><input type="checkbox" data-id="s3-github"><div><span class="done">сделано ✅</span> <b>Выложить проект на GitHub и добавить папу соавтором.</b> Так код хранится не только на твоём компьютере, и папа может смотреть и помогать. В Ubuntu (WSL):
 <pre>sudo apt install gh
 gh auth login        # GitHub.com → HTTPS → вход через браузер
 cd ~/eatandfit
@@ -100,9 +120,9 @@ git status           # .env в списке быть НЕ должно!
 gh repo create eatandfit --private --source=. --remote=origin --push
 gh api -X PUT repos/ТВОЙ_ЛОГИН/eatandfit/collaborators/noby2000 -f permission=push</pre>
 Вместо последней команды можно через сайт: репозиторий → <b>Settings → Collaborators → Add people → noby2000</b>. Потом папа принимает приглашение (придёт ему на почту) — и вы работаете в одном репозитории.</div></label>
-<label class="task"><input type="checkbox" data-id="s3-osinst"><div><b>Установи OpenSpec</b> (если ещё не стоит — пункт из Шага 1): <pre>npm install -g @fission-ai/openspec@latest
+<label class="task"><input type="checkbox" data-id="s3-osinst"><div><span class="done">сделано ✅</span> <b>Установи OpenSpec</b> (если ещё не стоит — пункт из Шага 1): <pre>npm install -g @fission-ai/openspec@latest
 openspec --version</pre></div></label>
-<label class="task"><input type="checkbox" data-id="s3-osinit"><div><b>Подключи OpenSpec к проекту.</b> <pre>cd ~/eatandfit
+<label class="task"><input type="checkbox" data-id="s3-osinit"><div><span class="done">сделано ✅</span> <b>Подключи OpenSpec к проекту.</b> <pre>cd ~/eatandfit
 openspec init --tools hermes</pre> Появятся папка <code>openspec/</code> и навыки в <code>.hermes/skills/</code>. Добавь их в <code>~/.hermes/config.yaml</code> (сделай копию конфига перед правкой!):
 <pre>skills:
   external_dirs:
@@ -137,9 +157,9 @@ git push</pre> Репозиторий на GitHub ты уже создал в п
 <label class="task"><input type="checkbox" data-id="s1-term"><div><span class="done">сделано ✅</span> <b>Терминал.</b> macOS: «Терминал» (Cmd+Пробел → Terminal). Linux: Ctrl+Alt+T. Windows: «Ubuntu» из меню Пуск (WSL2) или Windows Terminal. Попробуй команды: <pre>pwd
 ls
 mkdir projects && cd projects</pre></div></label>
-<label class="task"><input type="checkbox" data-id="s1-git"><div><b>Git.</b> Проверь: <pre>git --version</pre> Если нет — Ubuntu/WSL: <code>sudo apt update && sudo apt install -y git curl</code>; macOS: <code>xcode-select --install</code>. Представься git'у: <pre>git config --global user.name "Твоё Имя"
+<label class="task"><input type="checkbox" data-id="s1-git"><div><span class="done">сделано ✅</span> <b>Git.</b> Проверь: <pre>git --version</pre> Если нет — Ubuntu/WSL: <code>sudo apt update && sudo apt install -y git curl</code>; macOS: <code>xcode-select --install</code>. Представься git'у: <pre>git config --global user.name "Твоё Имя"
 git config --global user.email "почта@example.com"</pre></div></label>
-<label class="task"><input type="checkbox" data-id="s1-gh"><div><b>Аккаунт GitHub.</b> Зарегистрируйся на <a href="https://github.com/signup">github.com/signup</a>, включи двухфакторную защиту. Установи GitHub CLI (<a href="https://cli.github.com">cli.github.com</a>) и войди: <pre>gh auth login</pre></div></label>
+<label class="task"><input type="checkbox" data-id="s1-gh"><div><span class="done">сделано ✅</span> <b>Аккаунт GitHub.</b> Зарегистрируйся на <a href="https://github.com/signup">github.com/signup</a>, включи двухфакторную защиту. Установи GitHub CLI (<a href="https://cli.github.com">cli.github.com</a>) и войди: <pre>gh auth login</pre></div></label>
 <label class="task"><input type="checkbox" data-id="s1-py"><div><b>Python и uv.</b> Установщик Hermes сам ставит <code>uv</code> и нужный Python, но полезно иметь uv и для своих проектов: <pre>curl -LsSf https://astral.sh/uv/install.sh | sh
 uv --version
 uv python install</pre></div></label>
@@ -218,7 +238,7 @@ hermes</pre> Напиши агенту: «Привет! Какая у тебя �
 source ~/.bashrc
 nvm install --lts
 node --version    # должно быть v20.19 или выше</pre><i>Версия скрипта nvm в команде — смотри актуальную в README nvm.</i></div></label>
-<label class="task"><input type="checkbox" data-id="s1-openspec"><div><b>OpenSpec — разработка «от спецификации».</b> <a href="https://github.com/Fission-AI/OpenSpec">OpenSpec</a> — инструмент, где ты сначала вместе с агентом описываешь <i>что</i> строим (предложение, спецификации, задачи), и только потом агент пишет код. Hermes Agent есть в <a href="https://openspec.dev/docs/supported-tools">списке поддерживаемых инструментов</a>.<pre>npm install -g @fission-ai/openspec@latest
+<label class="task"><input type="checkbox" data-id="s1-openspec"><div><span class="done">сделано ✅</span> <b>OpenSpec — разработка «от спецификации».</b> <a href="https://github.com/Fission-AI/OpenSpec">OpenSpec</a> — инструмент, где ты сначала вместе с агентом описываешь <i>что</i> строим (предложение, спецификации, задачи), и только потом агент пишет код. Hermes Agent есть в <a href="https://openspec.dev/docs/supported-tools">списке поддерживаемых инструментов</a>.<pre>npm install -g @fission-ai/openspec@latest
 openspec --version
 # macOS/Linux можно и так: brew install openspec</pre>Подключение к проекту — в Шаге 3.</div></label>
 <label class="task"><input type="checkbox" data-id="s1-orch"><div><span class="done">сделано ✅</span> <b>Агенты и оркестратор (знакомство).</b> В Hermes есть инструмент <code>delegate_task</code>: главный агент (оркестратор) раздаёт задачи <b>субагентам</b>. У каждого — свой чистый контекст и свой терминал; в главный разговор возвращается только итог. Параллельно — до 10 субагентов по умолчанию. Субагенты не могут писать в общую память, задавать тебе вопросы и отправлять сообщения.
