@@ -28,20 +28,27 @@
 <li>✅ <b>GitHub:</b> создан приватный репозиторий <b>matikawuiu/eatandfit</b>, папа (noby2000) добавлен соавтором.</li>
 <li>✅ <b>Навыки OpenSpec подключены к Hermes</b> из <code>~/eatandfit/.hermes/skills</code> — их шесть: <code>openspec-propose</code>, <code>openspec-explore</code>, <code>openspec-apply-change</code>, <code>openspec-update-change</code>, <code>openspec-sync-specs</code>, <code>openspec-archive-change</code>.</li>
 </ul>
+<h3>Новое за 21 октября 2026 🎉</h3>
+<ul class="donelist">
+<li>✅ <b>Первая настоящая спецификация готова!</b> Change <code>add-auth-and-consent</code> (регистрация, вход, согласие на обработку ПД, удаление данных) прошёл <b>5 раундов ревью</b> и смержен в <code>master</code>. Это уровень настоящей команды 💪</li>
+<li>✅ <b>Первый код:</b> задачи 1.1–1.5 (папка <code>backend</code>, библиотеки, <code>.env.example</code>, <code>.gitignore</code>) — проект собирается и запускается. Код лежит в ветке <code>feat/auth-and-consent</code>, <a href="https://github.com/matikawuiu/eatandfit/pull/5">PR #5</a> открыт и обновляется сам.</li>
+<li>✅ Бесплатный лимит Gonka на этот месяц кончился, поэтому Gonka переехала <b>в конец цепочки</b> <code>free-chain</code>. Новый порядок — в разделе <a href="#diag">🩺 диагностика</a>.</li>
+<li>📚 Сегодня набрались новых уроков: <a href="#lessons">ошибки 15–19</a> и <a href="#code">как писать код порциями</a>.</li>
+</ul>
 <p>🩺 Hermes тупит или пишет, что кончились токены? Смотри <a href="#diag">как проверить за 2 минуты</a>.</p>
 <h3>Что дальше 👉</h3>
 <ol>
-<li><i>По желанию:</i> на <a href="https://openrouter.ai/settings/privacy">странице приватности OpenRouter</a> разреши бесплатные модели — тогда в цепочке заработает ещё и Nemotron.</li>
-<li>Проверь Hermes <b>без VPN</b>: выключи Happ, начни <code>/new</code> и спроси что-нибудь простое. Если отвечает долго — напиши, поставим Z.ai первым.</li>
-<li>Продолжай <a href="#step3">Шаг 3</a>: выбери объём MVP, опиши сценарий и стек, а потом напиши с Hermes <b>первую спецификацию OpenSpec</b> для eatandfit (пункты «explore» и «propose»).</li>
+<li>Три мелочи из ревью (поправь вместе со следующей порцией): удали старые файлы сборки из <code>backend/src</code>, в <code>backend/tsconfig.json</code> поставь <code>"types": ["node"]</code>, в <code>backend/.env.example</code> — <code>DB_PROVIDER=timeweb</code>.</li>
+<li>Следующая порция кода — <b>задачи 1.6–1.8</b> (логгер без персональных данных, CORS, <code>GET /health</code>). Как это делать — в разделе <a href="#code">«Пишем код порциями»</a>.</li>
+<li>После каждой порции — push и сообщение папе для ревью.</li>
 </ol>
 <p>Осталось проверить в Шаге 1 только uv и редактор кода (пункты без значка «сделано ✅»).</p>
-<p><b>Текущий этап → <a href="#step3">Шаг 3. Идея и спецификация (OpenSpec + Hermes)</a>.</b> Шаг 2 (модели и первые разговоры) ты по сути прошёл по ходу настройки — повторим главное в первом пункте чек-листа.</p>
+<p><b>Текущий этап → <a href="#code">Пишем код порциями (apply)</a>.</b> Шаг 3 (спецификация) пройден: первая спецификация <code>add-auth-and-consent</code> смержена.</p>
 <p class="muted">Галочки сохраняются только в твоём браузере, поэтому уже сделанное отмечено значком «сделано ✅» прямо в тексте — галочки можешь ставить сам.</p></section>
 
 <section id="diag"><h2>🩺 Hermes тупит или «кончились токены»: как проверить за 2 минуты</h2>
 <p>Если Hermes вдруг стал отвечать медленно, глупо или пишет, что «кончились токены», не паникуй. Чаще всего дело не в токенах, а в связи. Вот как это быстро проверить. Все команды запускай в терминале Ubuntu (WSL), просто копируй их целиком.</p>
-<p class="muted">Как всё устроено: Hermes → твой OmniRoute (<code>127.0.0.1:20128</code>) → цепочка <code>free-chain</code>: Gonka MiniMax-M2.7 → OpenRouter minimax-m3.1-flash:free → Gonka DeepSeek-V4-Flash → Gonka GLM-5.3-Flash → Z.ai GLM-4.5-Flash → OpenRouter Nemotron → Groq → NVIDIA. <b>Gonka и OpenRouter из России работают только с VPN.</b> Z.ai работает и без VPN, но он медленнее и слабее. Если первые модели недоступны, цепочка сама уходит на Z.ai — поэтому Hermes вроде отвечает, но «тупит».</p>
+<p class="muted">Как всё устроено: Hermes → твой OmniRoute (<code>127.0.0.1:20128</code>) → цепочка <code>free-chain</code> (с 21 октября): OpenRouter minimax-m3.1-flash:free → Z.ai GLM-4.5-Flash → OpenRouter Nemotron → Groq → NVIDIA → Gonka MiniMax-M2.7 → Gonka DeepSeek-V4-Flash → Gonka GLM-5.3-Flash. <b>Без VPN из России сейчас отвечает только Z.ai</b> — он медленнее и слабее, но для спецификаций и коммитов хватает. Если первая модель недоступна, цепочка сама уходит на Z.ai — поэтому Hermes вроде отвечает, но «тупит».</p>
 
 <h4>1. Живы ли службы?</h4>
 <p>Проверяем, что OmniRoute и Hermes-шлюз запущены:</p>
@@ -55,7 +62,7 @@
 <p>Или быстрая проверка из терминала. Первая строка загружает твои ключи из <code>~/.hermes/.env</code> (на экран они не выводятся), вторая отправляет в OmniRoute «привет» и показывает только название модели:</p>
 <pre>set -a; . ~/.hermes/.env; set +a
 curl -s http://127.0.0.1:20128/v1/chat/completions -H "Authorization: Bearer $OMNIROUTE_API_KEY" -H "Content-Type: application/json" -d '{"model":"free-chain","messages":[{"role":"user","content":"привет"}],"max_tokens":20}' | grep -o '"model":"[^"]*"'</pre>
-<p>✅ Хорошо — модель из начала цепочки (MiniMax, DeepSeek, GLM-5.3). ⚠️ Если там <code>glm-4.5-flash</code> — значит первые провайдеры не отвечают, и почти всегда причина в том, что <b>VPN выключен</b>. Переходи к шагу 3. ❌ Если вообще ничего не вывелось — убери <code>| grep ...</code> в конце и посмотри, какую ошибку пишет OmniRoute.</p>
+<p>✅ Хорошо — первая модель цепочки (MiniMax). ⚠️ Если там <code>glm-4.5-flash</code> — значит OpenRouter не отвечает, и почти всегда причина в том, что <b>VPN выключен</b>. Переходи к шагу 3. ❌ Если вообще ничего не вывелось — убери <code>| grep ...</code> в конце и посмотри, какую ошибку пишет OmniRoute.</p>
 
 <h4>3. Доходит ли интернет до провайдеров?</h4>
 <p>Стучимся по очереди в Gonka, OpenRouter и Z.ai (только IPv4, ждём до 10 секунд) и смотрим код ответа:</p>
@@ -100,6 +107,16 @@ curl -s http://127.0.0.1:20128/v1/chat/completions -H "Authorization: Bearer $OM
 <details><summary><b>12. Ключ Gonka был «на паузе»</b></summary><p>Ключ создали, но он не работал: в панели Gonka он стоял в статусе «на паузе», пока его не включили. <b>Урок:</b> после создания ключа загляни в панель провайдера и проверь, что ключ <b>активен</b> (а иногда нужно ещё подтвердить телефон по SMS).</p></details>
 <details><summary><b>13. Gemini, SambaNova и OpenRouter: что не подошло</b></summary><p>Ключ Gemini оказался не из Google AI Studio — правильный ключ начинается с <code>AIza</code>. К тому же Gemini блокирует регион даже через VPN. SambaNova просит привязать карту. Поэтому обоих убрали из цепочки. А у OpenRouter часть бесплатных моделей (например, Nemotron) работает, только если разрешить их на <a href="https://openrouter.ai/settings/privacy">странице приватности</a>. <b>Урок:</b> «бесплатно» не значит «работает сразу» — проверяй формат ключа, регион и настройки аккаунта.</p></details>
 <details><summary><b>14. «Кончились токены», а на самом деле выключен VPN</b></summary><p>Hermes стал отвечать медленно и хуже, и показалось, что закончились токены. На самом деле токены были на месте: просто был выключен VPN, Gonka и OpenRouter не отвечали (таймаут), и цепочка <code>free-chain</code> сама переключилась на запасной Z.ai GLM-4.5-Flash — он работает без VPN, но медленнее и слабее. <b>Урок:</b> прежде чем думать о токенах, проверь, какая модель реально ответила и доходит ли интернет до провайдеров — по шагам из раздела <a href="#diag">«🩺 Hermes тупит»</a>.</p></details>
+<details><summary><b>15. Hermes стёр ключи из <code>.env</code> и испортил <code>config.yaml</code></b></summary><p>Hermes попросили настроить Telegram, и он сам полез править свои файлы <code>~/.hermes/.env</code> и <code>~/.hermes/config.yaml</code>: ключи пропали, настройки сломались. Пришлось чинить вместе с папой. <b>Урок:</b> не проси Hermes править его собственные <code>.env</code> и <code>config.yaml</code>. Для настройки есть <code>hermes setup</code>, для проверки — <code>hermes doctor</code>. Перед любой правкой делай копии:
+<pre>cp ~/.hermes/.env ~/.hermes/.env.bak-$(date +%Y%m%d-%H%M)
+cp ~/.hermes/config.yaml ~/.hermes/config.yaml.bak-$(date +%Y%m%d-%H%M)</pre>
+Если всё-таки сломалось — верни файл из последней <code>.bak</code>-копии (<code>cp</code> в обратную сторону), запусти <code>hermes doctor</code> и скажи папе.</p></details>
+<details><summary><b>16. Переполнение контекста: 32.8K / 32.8K</b></summary><p>Разговор стал таким длинным, что не влез в «память» модели: у запасной модели окно всего около 32 тысяч токенов, и Hermes упёрся в потолок. <b>Урок:</b> одна задача — одна сессия. Перед новой порцией работы начинай чистый разговор командой <code>/new</code>, а если разговор затянулся — сожми его командой <code>/compress</code>.</p></details>
+<details><summary><b>17. Бесплатный лимит Gonka кончился (−79 тыс. токенов)</b></summary><p>В кабинете Gonka появилось «Бесплатный тариф исчерпан, доступно −79 тыс. токенов». Ничего страшного: Hermes работает через <b>цепочку моделей</b>. Цепочка (<code>free-chain</code> в OmniRoute) — это список моделей по очереди: если первая не ответила или у неё кончился лимит, OmniRoute сам берёт следующую. Gonka мы просто переставили в конец. Без VPN из России сейчас работает только Z.ai — медленнее, но для спецификаций и коммитов хватает. С Happ (Tailscale в исключениях) — быстрее. <b>Урок:</b> бесплатные лимиты кончаются — поэтому в цепочке всегда несколько провайдеров.</p></details>
+<details><summary><b>18. Git: commit — это ещё не push</b></summary><p>Несколько раз правки были сделаны и даже закоммичены, а на GitHub их не было: не сделан <code>push</code>, или он завис без VPN. А один раз коммит попал в старую ветку, которую уже смержили. <b>Урок:</b> всегда три шага: <code>git add</code> → <code>git commit</code> → <code>git push</code>. Потом проверь:
+<pre>git status -sb</pre>
+Если в первой строке есть слово <code>ahead</code> — push не дошёл. Если <code>git push</code> висит — включи Happ и повтори. Для каждой новой работы — <b>новая ветка</b>: <code>git switch -c spec/имя-работы</code>. PR создаётся на GitHub кнопкой «Compare &amp; pull request» («Сравнить и отправить запрос на слияние») в жёлтой плашке. Если список pull requests пуст — значит PR ещё не создан.</p></details>
+<details><summary><b>19. <code>openspec validate</code> прошёл, а ошибки остались</b></summary><p><code>openspec validate --all --strict</code> проверяет только <b>формат</b>: заголовки, слова SHALL/MUST в требованиях, что у каждого требования есть сценарий. Смысл, опечатки, противоречия между файлами и случайно стёртые строки он не видит. Поэтому спецификация и прошла 5 раундов ревью. <b>Урок:</b> «зелёный» validate — это хорошо, но после него всё равно нужно прочитать изменения самому и показать папе.</p></details>
 </section>
 
 <section><h2>Отдельно: OpenClaw</h2><p>Полное руководство по установке нашей системы OpenClaw с нуля (свой компьютер или сервер DigitalOcean): <a href="/openclaw/">открыть гайд по OpenClaw</a>.</p></section>
@@ -107,7 +124,7 @@ curl -s http://127.0.0.1:20128/v1/chat/completions -H "Authorization: Bearer $OM
 <section><h2>Дорожная карта</h2><ol class="roadmap">
 <li><a href="#step1">Шаг 1. Подготовка с нуля</a> — ✅ почти готово</li>
 <li>Шаг 2. Первый запуск Hermes: разговор, модели, slash-команды — ✅ пройден по ходу настройки</li>
-<li class="cur"><a href="#step3">Шаг 3. Идея и спецификация (OpenSpec + Hermes)</a> — ← мы здесь, <b>текущий этап</b>
+<li class="cur"><a href="#step3">Шаг 3. Идея и спецификация (OpenSpec + Hermes)</a> — ✅ первая спецификация готова; сейчас <a href="#code">пишем код порциями</a> ← <b>мы здесь</b>
 <div class="sub">Сначала спецификация — потом код. В папке проекта:
 <pre>mkdir ~/eatandfit && cd ~/eatandfit && git init
 openspec init --tools hermes</pre>
@@ -136,7 +153,23 @@ openspec init --tools hermes</pre>
 <li>Шаг 8. Telegram-бот через <code>hermes gateway</code> и автоматизации (cron)</li>
 </ol><p class="muted">Шаг 3 расписан ниже чек-листом. Шаги 4–8 будут расписаны позже.</p></section>
 
-<section id="step3" class="nowbox"><h2>Шаг 3. Идея и спецификация (OpenSpec + Hermes) <span class="badge">Текущий этап</span></h2>
+<section id="code" class="nowbox"><h2>Пишем код порциями (apply) <span class="badge">Текущий этап</span></h2>
+<p>Спецификация смержена — теперь Hermes пишет код по <code>tasks.md</code>. Главное правило: <b>не всё сразу, а по 5–6 задач</b>. Так проще проверить, и ничего не потеряется.</p>
+<p>Один раз перед стартом создай ветку для кода:</p>
+<pre>cd ~/eatandfit && git switch master && git pull && git switch -c feat/auth-and-consent</pre>
+<p>Дальше для каждой порции:</p>
+<ol>
+<li>В Hermes: <code>/new</code>, потом <code>/openspec-apply-change add-auth-and-consent</code> и напиши, какие задачи делать, например «сделай задачи 1.6–1.8».</li>
+<li>Проверь, что всё собирается: <code>npm run build</code> и <code>npm start</code> в папке <code>backend</code>.</li>
+<li>Убедись, что сделанные задачи отмечены в <code>tasks.md</code> как <code>- [x] 1.6 …</code>.</li>
+<li><code>git add backend openspec</code> — только нужные папки. Никогда не добавляй <code>.env</code> и <code>.hermes/</code> (там ключи); обе строки должны быть в <code>.gitignore</code>. Проверь <code>git status</code>.</li>
+<li><code>git commit -m "feat: tasks 1.6-1.8"</code> и <code>git push</code>, потом <code>git status -sb</code> — без слова <code>ahead</code>.</li>
+<li>Напиши папе — он сделает ревью.</li>
+</ol>
+<p>PR для кода (<a href="https://github.com/matikawuiu/eatandfit/pull/5">PR #5</a>) открыт до конца работы и обновляется сам после каждого push. <b>Мержим в самом конце</b>, когда все задачи сделаны и проверены.</p>
+</section>
+
+<section id="step3"><h2>Шаг 3. Идея и спецификация (OpenSpec + Hermes) <span class="done">первая спецификация готова ✅</span></h2>
 <p>Цель шага: <b>решить, что именно входит в первую версию (MVP), на чём и где она будет работать, и описать первую фичу спецификацией</b> — до того, как писать код. Работаем в папке проекта: <code>cd ~/eatandfit</code>, потом <code>hermes</code>.</p>
 <label class="task"><input type="checkbox" data-id="s3-basics"><div><b>Закрепи Шаг 2: команды Hermes.</b> В чате попробуй: <code>/help</code> — все команды, <code>/model</code> — какая модель сейчас, <code>/new</code> — новый чистый разговор (делай его, когда начинаешь новую задачу). Если что-то странно — выйди и запусти <code>hermes doctor</code>. Бесплатная модель думает 10–20 секунд — это нормально, подожди.</div></label>
 <label class="task"><input type="checkbox" data-id="s3-mvp"><div><b>Выбери объём MVP.</b> Открой предложение по MVP, которое сделал Hermes, и реши, что <b>вырезаем</b>. Правило: MVP — самое маленькое, что уже приносит пользу нутрициологу. Попроси Hermes:
@@ -189,7 +222,7 @@ openspec init --tools hermes</pre> Появятся папка <code>openspec/</
 Перед регистрацией — согласие на обработку персональных данных.
 Данные хранятся в PostgreSQL на хостинге в РФ (152-ФЗ). Стек — STACK.md.</pre>
 Если имя навыка другое — посмотри точное в <code>/help</code>.</div></label>
-<label class="task"><input type="checkbox" data-id="s3-review"><div><b>Прочитай и поправь спецификацию сам.</b> Открой <code>openspec/changes/add-specialist-client-food-diary/</code> в VS Code (<code>code .</code>). Проверь: понятно ли, что делает каждый пользователь? Нет ли лишнего, чего нет в MVP? Есть ли согласие на ПД? Задачи (tasks) маленькие? Что не нравится — попроси Hermes исправить.</div></label>
+<label class="task"><input type="checkbox" data-id="s3-review"><div><b>Прочитай и поправь спецификацию сам.</b> Открой <code>openspec/changes/add-specialist-client-food-diary/</code> в VS Code (<code>code .</code>). Проверь: понятно ли, что делает каждый пользователь? Нет ли лишнего, чего нет в MVP? Есть ли согласие на ПД? Задачи (tasks) маленькие? Что не нравится — попроси Hermes исправить. Потом запусти <code>openspec validate --all --strict</code> — но помни: он проверяет только формат (заголовки, SHALL/MUST, сценарии), а не смысл. Поэтому нужно ещё и ревью.</div></label>
 <label class="task"><input type="checkbox" data-id="s3-mentor"><div><b>Ревью с папой.</b> Покажи спецификацию папе — пусть задаст вопросы как «заказчик». Это нормальная практика в командах: перед кодом спецификацию смотрит второй человек.</div></label>
 <label class="task"><input type="checkbox" data-id="s3-commit"><div><b>Зафиксируй спецификацию в git и на GitHub.</b>
 <pre>git add openspec
